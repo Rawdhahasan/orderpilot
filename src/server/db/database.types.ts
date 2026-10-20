@@ -3,6 +3,66 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      audit_events: {
+        Row: {
+          action: string;
+          actor_type: Database["public"]["Enums"]["actor_type"];
+          actor_user_id: string | null;
+          changes: Json | null;
+          entity_id: string;
+          entity_type: string;
+          id: number;
+          metadata: Json | null;
+          occurred_at: string;
+          organization_id: string;
+          parent_entity_id: string | null;
+          parent_entity_type: string | null;
+          reason: string | null;
+          request_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: string;
+          actor_type: Database["public"]["Enums"]["actor_type"];
+          actor_user_id?: string | null;
+          changes?: Json | null;
+          entity_id: string;
+          entity_type: string;
+          id?: never;
+          metadata?: Json | null;
+          occurred_at?: string;
+          organization_id: string;
+          parent_entity_id?: string | null;
+          parent_entity_type?: string | null;
+          reason?: string | null;
+          request_id?: string | null;
+        };
+        Update: {
+          action?: string;
+          actor_type?: Database["public"]["Enums"]["actor_type"];
+          actor_user_id?: string | null;
+          changes?: Json | null;
+          entity_id?: string;
+          entity_type?: string;
+          id?: never;
+          metadata?: Json | null;
+          occurred_at?: string;
+          organization_id?: string;
+          parent_entity_id?: string | null;
+          parent_entity_type?: string | null;
+          reason?: string | null;
+          request_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "audit_events_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       currencies: {
         Row: {
           code: string;
@@ -1946,9 +2006,161 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      set_base_currency: {
+        Args: { p_currency: string; p_organization_id: string };
+        Returns: {
+          base_currency: string;
+          confidence_threshold: number;
+          country_code: string;
+          created_at: string;
+          created_by: string | null;
+          duplicate_lookback_days: number;
+          id: string;
+          is_demo: boolean;
+          legal_name: string | null;
+          locale: string;
+          name: string;
+          price_tolerance_pct: number;
+          require_independent_approval: boolean;
+          sales_order_prefix: string;
+          slug: string;
+          status: string;
+          timezone: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "organizations";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      set_customer_status: {
+        Args: {
+          p_customer_id: string;
+          p_reason?: string;
+          p_status: Database["public"]["Enums"]["customer_status"];
+        };
+        Returns: {
+          account_number: string | null;
+          account_number_normalized: string | null;
+          created_at: string;
+          created_by: string | null;
+          date_order_hint: string;
+          email: string | null;
+          hold_reason: string | null;
+          hold_set_at: string | null;
+          hold_set_by: string | null;
+          id: string;
+          name: string;
+          notes: string | null;
+          organization_id: string;
+          payment_terms: string | null;
+          phone: string | null;
+          status: Database["public"]["Enums"]["customer_status"];
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "customers";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      set_product_price: {
+        Args: { p_list_price: number; p_product_id: string; p_reason?: string };
+        Returns: {
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          gtin: string | null;
+          id: string;
+          list_price: number;
+          name: string;
+          organization_id: string;
+          quantity_decimals: number;
+          reorder_point: number | null;
+          selling_uom: string;
+          sku: string;
+          sku_normalized: string | null;
+          status: Database["public"]["Enums"]["product_status"];
+          track_inventory: boolean;
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "products";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      set_product_tracking: {
+        Args: { p_product_id: string; p_track_inventory: boolean };
+        Returns: {
+          created_at: string;
+          created_by: string | null;
+          description: string | null;
+          gtin: string | null;
+          id: string;
+          list_price: number;
+          name: string;
+          organization_id: string;
+          quantity_decimals: number;
+          reorder_point: number | null;
+          selling_uom: string;
+          sku: string;
+          sku_normalized: string | null;
+          status: Database["public"]["Enums"]["product_status"];
+          track_inventory: boolean;
+          updated_at: string;
+          updated_by: string | null;
+          version: number;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "products";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      update_workspace_settings: {
+        Args: { p_changes: Json; p_organization_id: string };
+        Returns: {
+          base_currency: string;
+          confidence_threshold: number;
+          country_code: string;
+          created_at: string;
+          created_by: string | null;
+          duplicate_lookback_days: number;
+          id: string;
+          is_demo: boolean;
+          legal_name: string | null;
+          locale: string;
+          name: string;
+          price_tolerance_pct: number;
+          require_independent_approval: boolean;
+          sales_order_prefix: string;
+          slug: string;
+          status: string;
+          timezone: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "organizations";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
     };
     Enums: {
+      actor_type: "user" | "system";
       address_type: "billing" | "shipping";
       adjustment_reason:
         "opening_balance" | "cycle_count" | "damaged" | "lost" | "found" | "correction";
@@ -2109,6 +2321,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      actor_type: ["user", "system"],
       address_type: ["billing", "shipping"],
       adjustment_reason: [
         "opening_balance",

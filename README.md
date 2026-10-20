@@ -3,7 +3,7 @@
 Customer PO intake, validation and approval for wholesalers and distributors.
 Every customer PO is checked and approved before it becomes an order.
 
-**Status: Phase 2A (local database schema).** The database runs locally; there is no
+**Status: Phase 2B (database security and audit).** The database runs locally; there is no
 sign-in, no data access from the app and no real data yet. The planning documents are in [docs/](docs/).
 
 ## Run it locally

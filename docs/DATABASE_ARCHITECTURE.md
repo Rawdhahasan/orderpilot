@@ -946,12 +946,12 @@ Lists use keyset (cursor) pagination. Dashboard counts come from aggregate SQL f
 
 | Area | Phase 2A (built) | Later |
 |---|---|---|
-| Schema | All tables in §6 except `audit_events` and `import_jobs`; enums; composite foreign keys; check, unique and exclusion constraints; generated columns; indexes on every foreign key | `audit_events` (2B), `import_jobs` (3) |
-| Security | RLS enabled on every table with **no policies** (deny by default); `anon` has no table privileges; `util` and `private` not exposed | Policies, grants, role-checked functions (2B) |
+| Schema | All tables in §6 except `import_jobs` (`audit_events` added in 2B); enums; composite foreign keys; check, unique and exclusion constraints; generated columns; indexes on every foreign key | `audit_events` (2B), `import_jobs` (3) |
+| Security | **2B:** RLS policies on every table per §7.4; signed-in users have table-level SELECT only, writes via column grants on the listed master-data tables; `anon` has no access; access helpers in `private` (`user_org_ids`, `user_org_ids_with`, `has_permission`, `is_member`, `permission_roles`); role-checked functions `set_customer_status`, `set_product_price`, `set_product_tracking`, `update_workspace_settings` (AAL2; Owner-only to disable independent approval), `set_base_currency` (Owner, AAL2, before the first intake). Errors: `not_found` P0002, `insufficient_privilege`/`mfa_required` 42501, `validation_failed` 22023, `invalid_state` 55000 | Member, invitation and MFA flows (2C) |
 | Workflows | — | Transition guards, approval, inventory and extraction queue functions (2D); member and invitation functions (2C) |
-| Append-only protection | — | Movements, audit events, raw extraction output, stored documents (2B) |
-| Seed | Two fictional workspaces with master data, stock and opening-balance movements | Users and members per role (2B) |
-| Migrations | `supabase/migrations/20261020130000` to `20261020130600` | |
-| Tests | `supabase/tests/database/001` to `005` (pgTAP): **130 checks, all passing** on Supabase Postgres 17.11 after a clean reset | Isolation and permission matrices (2B), concurrency (2D) |
+| Append-only protection | **2B:** audit events and stock movements (no update/delete/truncate); no hard deletes of business records; stored documents, raw extraction output, sales order lines (except the one-time backorder-handled record) and outbox content are immutable; `created_by`/`updated_by` stamped from the signed-in user. Generic audit trigger on all business tables with field-level diffs, actor, request ID and reason | Domain audit events from workflow functions (2D) |
+| Seed | Two fictional workspaces with master data, stock and opening-balance movements; **2B:** one fictional user per role in each workspace (no passwords) | Sign-in credentials (2C) |
+| Migrations | `supabase/migrations/20261020130000` to `20261021100300` (11) | |
+| Tests | `supabase/tests/database/001` to `005` (pgTAP): `001`–`008`: **401 checks, all passing** after a clean reset, including the tenant isolation matrix (006), role permission matrix and permission-map parity (007), audit and append-only tests (008) | Concurrency (2D), auth flows (2C) |
 | Generated types | `src/server/db/database.types.ts` (`corepack pnpm db:types`) | Regenerated after every schema change |
 

@@ -85,3 +85,34 @@ values
 insert into public.customer_prices (organization_id, customer_id, product_id, unit_price, valid_from, valid_to) values
   ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-a200-000000000001', '00000000-0000-4000-a400-000000000002', 43.1000, '2026-09-01', null),
   ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-b200-000000000001', '00000000-0000-4000-b400-000000000002', 55.5000, '2026-01-01', '2026-12-31');
+
+-- Users and memberships (Phase 2B): one fictional user per role in each
+-- workspace, for isolation and permission tests. No passwords are set; sign-in
+-- arrives in Phase 2C. IDs: …a5…0N (Northstar) and …b5…0N (Bayview), N = role order.
+with people (id, org, role, full_name, email) as (
+  values
+    ('00000000-0000-4000-a500-000000000001'::uuid, '00000000-0000-4000-a000-000000000001'::uuid, 'owner', 'Sofia Brandt', 'sofia.brandt@northstar.example'),
+    ('00000000-0000-4000-a500-000000000002', '00000000-0000-4000-a000-000000000001', 'admin', 'Alex Moreno', 'alex.moreno@northstar.example'),
+    ('00000000-0000-4000-a500-000000000003', '00000000-0000-4000-a000-000000000001', 'approver', 'Priya Raman', 'priya.raman@northstar.example'),
+    ('00000000-0000-4000-a500-000000000004', '00000000-0000-4000-a000-000000000001', 'processor', 'Jordan Ellis', 'jordan.ellis@northstar.example'),
+    ('00000000-0000-4000-a500-000000000005', '00000000-0000-4000-a000-000000000001', 'inventory_manager', 'Marc Dubois', 'marc.dubois@northstar.example'),
+    ('00000000-0000-4000-a500-000000000006', '00000000-0000-4000-a000-000000000001', 'viewer', 'Sam Patel', 'sam.patel@northstar.example'),
+    ('00000000-0000-4000-b500-000000000001', '00000000-0000-4000-b000-000000000001', 'owner', 'Imogen Hale', 'imogen.hale@bayview.example'),
+    ('00000000-0000-4000-b500-000000000002', '00000000-0000-4000-b000-000000000001', 'admin', 'Rhys Okafor', 'rhys.okafor@bayview.example'),
+    ('00000000-0000-4000-b500-000000000003', '00000000-0000-4000-b000-000000000001', 'approver', 'Freya Lund', 'freya.lund@bayview.example'),
+    ('00000000-0000-4000-b500-000000000004', '00000000-0000-4000-b000-000000000001', 'processor', 'Owen Pryce', 'owen.pryce@bayview.example'),
+    ('00000000-0000-4000-b500-000000000005', '00000000-0000-4000-b000-000000000001', 'inventory_manager', 'Tariq Begum', 'tariq.begum@bayview.example'),
+    ('00000000-0000-4000-b500-000000000006', '00000000-0000-4000-b000-000000000001', 'viewer', 'Ellie Marsh', 'ellie.marsh@bayview.example')
+), users as (
+  insert into auth.users (instance_id, id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+  select '00000000-0000-0000-0000-000000000000', id, 'authenticated', 'authenticated', email,
+         '{"provider": "email", "providers": ["email"]}'::jsonb, '{}'::jsonb, now(), now()
+    from people
+  returning id
+), profiles as (
+  insert into public.profiles (id, full_name, email)
+  select p.id, p.full_name, p.email from people p join users u on u.id = p.id
+  returning id
+)
+insert into public.organization_members (organization_id, user_id, role)
+select p.org, p.id, p.role::public.member_role from people p join profiles pr on pr.id = p.id;

@@ -80,6 +80,9 @@ begin
   perform pg_temp.intake('00000000-0000-4000-d000-00000000000b', 'IN-900002', '00000000-0000-4000-a200-000000000001', '88213');
   perform pg_temp.intake('00000000-0000-4000-d000-00000000000c', 'IN-900003', '00000000-0000-4000-a200-000000000002', '88213');
   perform pg_temp.intake('00000000-0000-4000-d000-00000000000d', 'IN-900004', '00000000-0000-4000-a200-000000000001', 'po 88213');
+  -- An upload still being verified (pending).
+  insert into public.source_documents (organization_id, original_filename, mime_type, uploaded_by)
+  values ('00000000-0000-4000-a000-000000000001', 'pending-upload.pdf', 'application/pdf', '00000000-0000-4000-c000-000000000002');
 end $$;
 
 -- Intake rules -----------------------------------------------------------------
@@ -128,7 +131,7 @@ select throws_ok(
   '23503', null, 'a selected ship-to address must belong to the confirmed customer'
 );
 select throws_ok(
-  $$update public.source_documents set upload_status = 'rejected' where original_filename = 'IN-900001.pdf'$$,
+  $$update public.source_documents set upload_status = 'rejected' where original_filename = 'pending-upload.pdf'$$,
   '23514', null, 'a rejected upload needs a reason'
 );
 
@@ -244,7 +247,7 @@ select throws_ok(
       '00000000-0000-4000-f000-0000000000b0')$$,
   '23503', null, 'an open duplicate exception cannot authorise a duplicate order'
 );
-delete from public.order_exceptions where id = '00000000-0000-4000-f000-0000000000b0';
+-- Exceptions are never deleted (Phase 2B); this one is overridden below instead.
 
 -- An override recorded on a different intake does not authorise this one.
 select throws_ok(
@@ -256,9 +259,13 @@ select throws_ok(
 );
 
 -- The intake's own, complete override authorises exactly this duplicate.
-create temporary table b_override as
-  select pg_temp.duplicate_override('00000000-0000-4000-d000-00000000000b',
-    '[{"type": "sales_order", "id": "00000000-0000-4000-e000-00000000000a"}]') as id;
+update public.order_exceptions
+   set status = 'overridden', override_reason = 'Customer reuses PO numbers for weekly releases',
+       overridden_by = '00000000-0000-4000-c000-000000000001', overridden_at = now(),
+       override_fingerprint = repeat('b', 64),
+       override_conflicts = '[{"type": "sales_order", "id": "00000000-0000-4000-e000-00000000000a"}]'
+ where id = '00000000-0000-4000-f000-0000000000b0';
+create temporary table b_override as select '00000000-0000-4000-f000-0000000000b0'::uuid as id;
 select lives_ok(
   format(
     $$select pg_temp.approve('00000000-0000-4000-d000-00000000000b', '00000000-0000-4000-e000-00000000000b', 'SO-2026-900002', %L)$$,

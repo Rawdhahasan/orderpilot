@@ -88,7 +88,7 @@ flowchart LR
 | Milestone | Scope | Status |
 |---|---|---|
 | 2A | Local Supabase and database schema: migrations, constraints, indexes, fictional seed, schema tests, generated types | Complete, awaiting approval: 7 migrations, clean reset verified, 130/130 database checks pass |
-| 2B | RLS policies, grants, role-checked functions, audit foundation (audit table, tamper-proofing, automatic change recording), seeded users per role, isolation tests | Not started |
+| 2B | RLS policies, grants, role-checked functions, audit foundation (audit table, tamper-proofing, automatic change recording), seeded users per role, isolation tests | Complete, awaiting approval: 4 migrations, 401/401 database checks pass |
 | 2C | Authentication, MFA, invitations, profile, members, settings, workspaces | Not started |
 | 2D | Business transactions (approval, stock, fulfilment, cancellation), status guards, extraction job infrastructure, integrity checks, concurrency tests | Not started |
 

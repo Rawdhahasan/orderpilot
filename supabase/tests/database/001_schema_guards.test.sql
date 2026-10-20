@@ -5,7 +5,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(18);
+select plan(22);
 
 -- Every expected table exists ------------------------------------------------
 select tables_are(
@@ -16,9 +16,9 @@ select tables_are(
     'products', 'customer_item_aliases', 'customer_prices', 'locations',
     'inventory_balances', 'inventory_movements', 'source_documents', 'inbound_orders',
     'inbound_order_lines', 'extraction_runs', 'order_exceptions', 'sales_orders',
-    'sales_order_lines', 'integration_outbox'
+    'sales_order_lines', 'integration_outbox', 'audit_events'
   ],
-  'public schema contains exactly the Phase 2A tables'
+  'public schema contains exactly the expected tables'
 );
 
 -- Row-level security is on for every table (deny by default until Phase 2B) ---
@@ -95,12 +95,22 @@ select is(
   'parent tables have unique (organization_id, id) for composite foreign keys'
 );
 
--- No SECURITY DEFINER functions are reachable through the Data API -----------
+-- SECURITY DEFINER functions in the Data API are a reviewed allowlist ---------
 select is(
-  (select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
+     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prosecdef),
-  0,
-  'no SECURITY DEFINER functions in the public schema'
+  array['set_base_currency', 'set_customer_status', 'set_product_price', 'set_product_tracking', 'update_workspace_settings'],
+  'only reviewed role-checked functions are SECURITY DEFINER in public'
+);
+select is(
+  (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
+     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and (has_function_privilege('anon', p.oid, 'EXECUTE')
+           or exists (select 1 from aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a where a.grantee = 0 and a.privilege_type = 'EXECUTE'))),
+  '{}'::text[],
+  'no public function is executable by anon or PUBLIC'
 );
 
 -- util functions are pure, so they are safe in generated columns and checks --
@@ -126,9 +136,50 @@ select ok(
   not has_schema_privilege('anon', 'private', 'USAGE'),
   'anon cannot use the private schema'
 );
-select ok(
-  not has_schema_privilege('authenticated', 'private', 'USAGE'),
-  'authenticated users cannot use the private schema'
+select is(
+  (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
+     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'private' and has_function_privilege('authenticated', p.oid, 'EXECUTE')),
+  array['has_permission', 'is_member', 'permission_roles', 'user_org_ids', 'user_org_ids_with'],
+  'signed-in users can execute only the RLS access helpers in private'
+);
+select is(
+  (select array_agg(s order by s) from unnest(array['private', 'util']) s
+    where s = any (string_to_array(coalesce(current_setting('pgrst.db_schemas', true), 'public,graphql_public'), ','))),
+  null,
+  'private and util are not exposed through the Data API'
+);
+
+-- Table privileges for signed-in users are exactly the access matrix (§7.4) ---
+select is(
+  (select coalesce(array_agg(table_name || ':' || privilege_type order by table_name, privilege_type), '{}')
+     from information_schema.role_table_grants
+    where grantee = 'authenticated' and table_schema = 'public'),
+  array[
+    'audit_events:SELECT', 'currencies:SELECT', 'customer_addresses:SELECT', 'customer_item_aliases:SELECT',
+    'customer_prices:DELETE', 'customer_prices:SELECT', 'customers:SELECT', 'extraction_runs:SELECT',
+    'inbound_order_lines:SELECT', 'inbound_orders:SELECT', 'inventory_balances:SELECT',
+    'inventory_movements:SELECT', 'locations:SELECT', 'order_exceptions:SELECT',
+    'organization_invitations:SELECT', 'organization_members:SELECT', 'organizations:SELECT',
+    'products:SELECT', 'profiles:SELECT', 'sales_order_lines:SELECT', 'sales_orders:SELECT',
+    'source_documents:SELECT', 'uom_codes:SELECT'
+  ],
+  'signed-in users have table-level SELECT only (plus DELETE on customer prices); writes are column grants'
+);
+select is(
+  (select coalesce(array_agg(distinct table_name || '.' || column_name || ':' || privilege_type
+            order by table_name || '.' || column_name || ':' || privilege_type), '{}')
+     from information_schema.column_privileges
+    where grantee = 'authenticated' and table_schema = 'public' and privilege_type in ('INSERT', 'UPDATE')
+      and column_name in ('status', 'hold_reason', 'list_price', 'track_inventory', 'version', 'created_by',
+                          'updated_by', 'organization_id', 'require_independent_approval', 'base_currency')
+      and not (table_name = 'products' and privilege_type = 'INSERT' and column_name in ('list_price', 'track_inventory', 'status', 'organization_id'))
+      -- Reviewed: discontinuing a product is a product edit (FR-PROD-02), limited to product editors by RLS.
+      and not (table_name = 'products' and privilege_type = 'UPDATE' and column_name = 'status')
+      and not (privilege_type = 'INSERT' and column_name = 'organization_id')
+      and not (table_name in ('customer_addresses', 'customer_item_aliases') and column_name = 'status')),
+  '{}'::text[],
+  'protected columns (status, prices, tracking, settings, actors, versions) cannot be written directly'
 );
 
 -- Enumerated types match DATABASE_ARCHITECTURE.md §5 --------------------------
