@@ -155,6 +155,9 @@ Generated from the table in PRD §8 and the access matrix in DATABASE_ARCHITECTU
 
 ### 5.7 Duplicate detection
 
+The five approved duplicate safety requirements and the test that covers each are listed in DATABASE_ARCHITECTURE.md §12.1. Schema-level guarantees are tested in `supabase/tests/database/005_orders_and_duplicates.test.sql` (Phase 2A); the approval-time re-check and the concurrent-approval races are tested in Phase 2D (§7).
+
+
 Each layer in DATABASE_ARCHITECTURE §12: same file hash, same customer and normalised PO number, similar content within the look-back window, one sales order per intake, the partial unique index backstop, and the PO number reuse rule after cancellation (Q-2).
 
 ### 5.8 Audit trail

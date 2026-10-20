@@ -216,7 +216,7 @@ The panel lists blocking exceptions first, then warnings. Each item explains the
 | `SHIP_TO_MISSING` | "No ship-to address on document." | Select a saved address or type the address exactly as printed elsewhere on the document. If none exists, contact the customer. |
 | `PO_NUMBER_MISSING` | "No PO number found." | Enter it if visible. Otherwise submit; an approver overrides with "Customer did not provide a PO number". |
 
-Overrides always require a reason and are shown prominently to the approver. An Approver+ reviewing an intake may override during review; otherwise overridable exceptions travel with the submission as **Override required** (C-01, unresolved decision D-34). `exception.resolved`, `exception.overridden`, `exception.acknowledged`
+Overrides always require a reason and are shown prominently to the approver. An Approver+ reviewing an intake may override during review; otherwise overridable exceptions travel with the submission as **Override required** (C-01, approved D-34). `exception.resolved`, `exception.overridden`, `exception.acknowledged`
 
 #### UF-05.6 Saving, concurrency and submission
 1. Changes autosave. The header shows "Saved" with time, or "Saving…".
@@ -267,9 +267,11 @@ Overrides always require a reason and are shown prominently to the approver. An 
 
 1. **Sales orders** list: search by sales order number, customer PO number, customer; filter by status and date.
 2. Detail page: header, address snapshots, lines (ordered, reserved, backordered), price source, approval details, link to intake and original document, timeline.
-3. **Mark fulfilled** → confirmation dialog lists quantities to be issued from stock, and any backordered quantities that will **not** be fulfilled through OrderPilot → stock issued → status `fulfilled`, shown as "Fulfilled · 20 EA backordered" when a backorder exists (M-02; follow-up is unresolved decision D-35). `sales_order.fulfilled`, `inventory.issued`
+3. **Mark fulfilled** → confirmation dialog lists quantities to be issued from stock, and any backordered quantities that will **not** be fulfilled through OrderPilot → stock issued → status `fulfilled`, shown as "Fulfilled · 20 EA backordered" when a backorder exists (M-02, approved D-35). `sales_order.fulfilled`, `inventory.issued`
 4. **Cancel** (reason required) → reservations released → status `cancelled`. Not available once fulfilled. `sales_order.cancelled`, `inventory.reservation_released`
 5. **Export** (Should): CSV and printable view for manual ERP entry.
+
+6. **Mark backorder handled externally** (Phase 5, FR-SO-08): on a line with a backorder, choose the action, enter a reason (for example "Shipped from ERP on 22 Oct") → recorded with actor and time; inventory does not change; the line shows "Backorder handled externally" and leaves the open-backorder list. `sales_order_line.backorder_handled_externally`
 
 **Edge case:** an order needs a change after approval → cancel with reason "Customer changed quantities", then process the revised PO as a new intake (D-19). The duplicate check will recognise the PO number on the cancelled order as not active.
 

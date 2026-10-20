@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Draft v0.2: review corrections applied; Phase 2 decisions still open |
+| **Status** | v0.3: Phase 2A decisions and Q-1 to Q-5 approved; schema implemented in Phase 2A |
 | **Date** | 2026-10-20 |
 | **Database** | Supabase PostgreSQL (Postgres 15 or later) |
 | **Depends on** | [PRODUCT_REQUIREMENTS.md](PRODUCT_REQUIREMENTS.md) §5, §8, §9, §15 |
@@ -52,7 +52,8 @@ The same schema runs unchanged in a dedicated single-customer deployment; that d
 | Actors | `created_by`, `updated_by uuid` referencing `profiles(id)`. |
 | Money | `numeric(19,4)`. Line totals rounded to 2 decimals, half away from zero (Postgres `round(numeric, 2)`). |
 | Quantities | `numeric(14,3)`; each product defines allowed decimals (0 to 3). |
-| Currency | ISO 4217 `char(3)`. Countries: ISO 3166-1 alpha-2 `char(2)`. |
+| Currency | ISO 4217 `char(3)` referencing the global `currencies` table, which records each currency's minor unit (Q-5). Countries: ISO 3166-1 alpha-2 `char(2)`. |
+| Schemas | `public` for tables (exposed through the Data API only as RLS allows); `util` for pure, immutable helper functions used by generated columns and checks; `private` for security helpers (Phase 2B). Neither `util` nor `private` is exposed through the Data API. |
 | Normalised keys | Generated columns for matching, for example `customer_po_number_normalized`, computed by immutable SQL functions. Generated columns cannot read workspace settings, so normalisation rules are fixed, not configurable per workspace (C-02). |
 | Optimistic concurrency | `version integer not null default 1` on editable aggregates; every write checks and increments it. |
 | JSON | `jsonb` only for addresses as printed, provenance metadata, raw extraction output, audit diffs and outbox payloads, each with a versioned shape validated by the application (Zod) and a `jsonb_typeof` check. |
@@ -98,7 +99,7 @@ Table groups:
 | Group | Tables |
 |---|---|
 | Identity and workspace | `profiles`, `organizations`, `organization_members`, `organization_invitations`, `document_sequences` |
-| Master data | `customers`, `customer_addresses`, `products`, `uom_codes` (global), `customer_item_aliases`, `customer_prices` |
+| Master data | `customers`, `customer_addresses`, `products`, `uom_codes` (global), `currencies` (global), `customer_item_aliases`, `customer_prices` |
 | Inventory | `locations`, `inventory_balances`, `inventory_movements` |
 | Intake | `source_documents`, `inbound_orders`, `inbound_order_lines`, `extraction_runs`, `order_exceptions` |
 | Sales | `sales_orders`, `sales_order_lines` |
@@ -479,6 +480,8 @@ Workers claim jobs with `for update skip locked` where `status = 'queued' and av
 | `override_reason` | text null | Required when `overridden` |
 | `overridden_by` | uuid null | Must hold Approver+ (checked by function) |
 | `override_fingerprint` | text null | The fingerprint at the time of override; for duplicates it covers the exact set of conflicting intake and sales order IDs (M-07) |
+| `override_conflicts` | jsonb null | For duplicate overrides: the intakes and sales orders the Approver reviewed, as an array of `{type, id}`; required for duplicate codes (§12.1) |
+| `authorizes_duplicate` | boolean generated | True only for an overridden `DUPLICATE_PO_NUMBER` exception; the target of the sales order's duplicate foreign key (§12.1) |
 
 Constraint: one row per `(inbound_order_id, line, code)`. When validation re-runs and the fingerprint changes, a resolved, acknowledged or overridden exception re-opens.
 
@@ -494,7 +497,9 @@ Constraint: one row per `(inbound_order_id, line, code)`. When validation re-run
 | `inbound_order_id` | uuid | Composite FK; **unique**: one sales order per intake |
 | `customer_id` | uuid | Composite FK |
 | `customer_po_number`, `customer_po_number_normalized` | text | |
-| `duplicate_override` | boolean | True when a duplicate PO number was overridden |
+| `duplicate_override_exception_id` | uuid null | Set only for an authorised duplicate: the overridden `DUPLICATE_PO_NUMBER` exception of **this same intake** (composite foreign key, §12.1) |
+| `duplicate_override` | boolean generated | `duplicate_override_exception_id is not null` |
+| `duplicate_override_marker` | boolean generated | NULL for normal orders, TRUE for authorised duplicates; makes the foreign key require `authorizes_duplicate = true` |
 | `po_date`, `requested_delivery_date` | date | |
 | `currency` | char(3) | |
 | `bill_to`, `ship_to` | jsonb | **Snapshots**: later customer edits do not change history |
@@ -506,7 +511,7 @@ Constraint: one row per `(inbound_order_id, line, code)`. When validation re-run
 | `cancelled_by`, `cancelled_at`, `cancel_reason` | | |
 | `version` | integer | |
 
-Duplicate backstop: partial unique index on `(organization_id, customer_id, customer_po_number_normalized)` where `status <> 'cancelled' and not duplicate_override`. Null PO numbers are naturally excluded.
+Duplicate backstop: partial unique index on `(organization_id, customer_id, customer_po_number_normalized)` where `status <> 'cancelled' and duplicate_override_exception_id is null`. Null PO numbers are naturally excluded.
 
 #### `sales_order_lines`
 
@@ -521,11 +526,13 @@ Duplicate backstop: partial unique index on `(organization_id, customer_id, cust
 | `quantity` | numeric(14,3) | > 0 |
 | `uom` | text | |
 | `unit_price` | numeric(19,4) | ≥ 0 |
-| `line_total` | numeric(19,4) | `round(quantity × unit_price, 2)` |
+| `currency_minor_unit` | smallint | Copied from `currencies.minor_unit` at approval (Q-5) |
+| `line_total` | numeric(19,4) | `round(quantity × unit_price, currency_minor_unit)`, enforced by a check constraint; half away from zero |
 | `price_source` | price_source | |
 | `match_method` | match_method | |
 | `allocated_qty` | numeric(14,3) | Reserved at approval; immutable |
-| `backordered_qty` | numeric(14,3) | Not reserved; immutable |
+| `backordered_qty` | numeric(14,3) | Not reserved; immutable (D-35) |
+| `backorder_handled_at`, `backorder_handled_by`, `backorder_handled_reason` | | FR-SO-08 "Mark backorder handled externally" (Phase 5): all set or all null; a reason is required; only on lines with `backordered_qty > 0`. Never changes inventory or `backordered_qty` |
 | `source_inbound_order_line_id` | uuid | |
 
 Checks: `quantity = allocated_qty + backordered_qty`, `allocated_qty >= 0`, `backordered_qty >= 0`, and both respect the product's decimals (M-03). Lines for untracked products have `allocated_qty = quantity` and no movements (M-01). Sales order rows are inserted only by `approve_inbound_order`; lines are never updated. Backordered quantities stay on the line after fulfilment and are included in the outbox payload (M-02; follow-up is unresolved decision D-35).
@@ -694,7 +701,7 @@ S = select, I = insert, U = update, D = delete, F = only through functions, — 
 
 The hard gate checks: customer set and active; on-hold only with a valid override; PO number present or overridden; duplicate PO number and duplicate document only with overrides whose `override_fingerprint` matches the conflict set **recomputed in SQL at that moment** (M-07); every active line has an active product, a valid quantity for the product's decimals, a resolved unit and a decided price; no field in `field_meta` with `source = ai` and `state = suggested`; `validated_version = version`.
 
-**Submit vs approve (C-01, unresolved decision D-34).** `submit_inbound_order` allows open blocking exceptions only when every one is `overridable`; they reach the approver as **Override required**. `approve_inbound_order` requires every blocking exception to be resolved or overridden with a matching fingerprint.
+**Submit vs approve (C-01, approved D-34).** `submit_inbound_order` allows open blocking exceptions only when every one is `overridable`; they reach the approver as **Override required**. `approve_inbound_order` requires every blocking exception to be resolved or overridden with a matching fingerprint.
 
 Warnings (`POSSIBLE_DUPLICATE`, `TOTAL_MISMATCH`, `REQUESTED_DATE_PAST`, and so on) are advisory and checked only by the TypeScript layer.
 
@@ -733,6 +740,7 @@ A `before update` trigger rejects any status change made outside these functions
 3. If the intake is already `approved`, return the existing sales order (**idempotent**).
 4. Require `status = 'pending_approval'` and `version = expected_version`.
 5. If independent approval is on, require caller ≠ submitter.
+5a. If the intake has a customer PO number, take a transaction-level advisory lock on `(organization_id, customer_id, customer_po_number_normalized)` so that approvals of the same PO number run one at a time, then recompute the duplicate conflict set (§12.1).
 6. Run the hard gate (§8.1), including that no Override required item is still open. Any failure: return the list of failures; nothing is written.
 7. Total the requested quantity per **tracked** product. Lock the matching `inventory_balances` rows **in ascending `(location_id, product_id)` order**. Untracked lines are allocated in full with no lock and no movement (M-01).
 8. Allocate stock to lines in line order, using `greatest(available, 0)` so over-committed stock allocates nothing (M-03). If any line is short and no decision for it was supplied, return `needs_stock_decision` with the shortfall per line; nothing is written. Supplied decisions (`backorder`) set `allocated_qty` and `backordered_qty`.
@@ -746,7 +754,7 @@ A `before update` trigger rejects any status change made outside these functions
 
 **Backstops.** If two approvals race, the unique constraint on `sales_orders.inbound_order_id` and the partial unique index on PO numbers reject the second insert; the function maps that to `already_approved` or `duplicate_po_number`.
 
-**Lock order (all functions).** (1) intake or sales order row, (2) inventory balances in `(location_id, product_id)` order, (3) document sequence. Using one global order prevents deadlocks.
+**Lock order (all functions).** (1) intake or sales order row, (2) duplicate advisory lock for the PO number, (3) inventory balances in `(location_id, product_id)` order, (4) document sequence. Using one global order prevents deadlocks.
 
 **Isolation.** `read committed` with explicit row locks. Unique constraints cover the remaining cross-row races.
 
@@ -823,6 +831,16 @@ When an adjustment leaves `on_hand < reserved`, the change is allowed (the physi
 "Active intake" means status not in (`approved`, `rejected`, `cancelled`); approved intakes are covered by their sales order.
 
 ---
+
+### 12.1 Duplicate safety requirements (approved, Phase 2A review)
+
+| # | Requirement | How it is guaranteed | Where | Tested in |
+|---|---|---|---|---|
+| 1 | An override applies only to the specific conflict the Approver reviewed | The override records `override_conflicts` (the intakes and sales orders shown) and `override_fingerprint`. A sales order may reference only an overridden `DUPLICATE_PO_NUMBER` exception **of its own intake** (composite foreign key on `organization_id, inbound_order_id, id, authorizes_duplicate`) | Schema (2A) | `005_orders_and_duplicates` |
+| 2 | Every override requires a reason and an audit record | Check constraints: an overridden exception must have a non-blank reason, the Approver, the time and the fingerprint. Audit events are written by the override function | Schema (2A); audit (2B/2D) | `005`; 2B/2D audit tests |
+| 3 | A new conflicting order invalidates stale decisions | At approval the conflict set is **recomputed in SQL**; if its fingerprint differs from `override_fingerprint`, approval is refused and the exception re-opens. Once a sales order relies on an override, the override cannot be re-opened (the foreign key blocks it) | Approval function (2D); schema (2A) | 2D; `005` |
+| 4 | Concurrent approvals cannot bypass duplicate checks | (a) Approval takes a transaction-level advisory lock on `(organization_id, customer_id, normalised PO number)` **before** recomputing conflicts, so approvals of the same PO number run one at a time and each sees the other's committed order. (b) The partial unique index allows at most one non-cancelled, non-overridden sales order per customer and PO number, so even without the lock one of two racing accidental duplicates fails | Approval function (2D); schema (2A) | 2D concurrency suite; `005` (index) |
+| 5 | Authorised duplicates do not weaken protection against accidental ones | An authorised duplicate is excluded from the unique index only because it carries `duplicate_override_exception_id`, which must point at a complete override of the same intake. Removing that link re-applies the index. Any further copy of the same PO number is still caught: the recomputed conflict set includes authorised duplicates | Schema (2A); approval function (2D) | `005`; 2D |
 
 ## 13. Audit trail design
 
@@ -915,9 +933,24 @@ Lists use keyset (cursor) pagination. Dashboard counts come from aggregate SQL f
 
 | ID | Question | Proposed answer |
 |---|---|---|
-| Q-1 | Should PO numbers be unique per customer only, or per workspace? | Per customer (different customers can use the same number). |
-| Q-2 | Should a cancelled sales order's PO number be reusable without override? | Yes; cancelled orders are excluded from duplicate checks. |
-| Q-3 | Is the PO number normalisation rule (§12) acceptable? | **Resolved by approved correction C-02:** one fixed rule, not switchable per workspace. |
-| Q-4 | Should replacing a conflicting customer alias at approval require confirmation? | Yes: the approval summary lists alias replacements explicitly. |
-| Q-5 | Do we need sub-cent unit prices (for example $0.0125 per screw)? | Supported by `numeric(19,4)`; line totals rounded to cents. |
+| Q-1 | Should PO numbers be unique per customer only, or per workspace? | **Approved:** unique per customer within a workspace. |
+| Q-2 | Should a cancelled sales order's PO number be reusable without override? | **Approved:** yes; cancelled orders are excluded from duplicate checks. |
+| Q-3 | Is the PO number normalisation rule (§12) acceptable? | **Approved:** the fixed rule (C-02), implemented as `util.normalize_po_number`. |
+| Q-4 | Should replacing a conflicting customer alias at approval require confirmation? | **Approved:** alias replacements are visible and explicitly confirmed during approval (Phase 2D function, Phase 5 screen). |
+| Q-5 | Do we need sub-cent unit prices (for example $0.0125 per screw)? | **Approved:** four-decimal unit prices; final monetary totals rounded to the currency's minor unit with deterministic decimal arithmetic. |
 | Q-6 | Should audit events for read access (document downloads) be kept as long as change events? | Yes, same retention. |
+
+---
+
+## 19. Implementation status
+
+| Area | Phase 2A (built) | Later |
+|---|---|---|
+| Schema | All tables in §6 except `audit_events` and `import_jobs`; enums; composite foreign keys; check, unique and exclusion constraints; generated columns; indexes on every foreign key | `audit_events` (2B), `import_jobs` (3) |
+| Security | RLS enabled on every table with **no policies** (deny by default); `anon` has no table privileges; `util` and `private` not exposed | Policies, grants, role-checked functions (2B) |
+| Workflows | — | Transition guards, approval, inventory and extraction queue functions (2D); member and invitation functions (2C) |
+| Append-only protection | — | Movements, audit events, raw extraction output, stored documents (2B) |
+| Seed | Two fictional workspaces with master data, stock and opening-balance movements | Users and members per role (2B) |
+| Migrations | `supabase/migrations/20261020130000` to `20261020130600` | |
+| Tests | `supabase/tests/database/001` to `005` (pgTAP) | Isolation and permission matrices (2B), concurrency (2D) |
+

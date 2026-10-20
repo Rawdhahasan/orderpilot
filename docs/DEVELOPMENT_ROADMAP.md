@@ -83,6 +83,15 @@ flowchart LR
 
 ### Phase 2: Database, authentication, isolation and permissions
 
+**Milestones (approved, each approved separately):**
+
+| Milestone | Scope | Status |
+|---|---|---|
+| 2A | Local Supabase and database schema: migrations, constraints, indexes, fictional seed, schema tests, generated types | In progress |
+| 2B | RLS policies, grants, role-checked functions, audit foundation (audit table, tamper-proofing, automatic change recording), seeded users per role, isolation tests | Not started |
+| 2C | Authentication, MFA, invitations, profile, members, settings, workspaces | Not started |
+| 2D | Business transactions (approval, stock, fulfilment, cancellation), status guards, extraction job infrastructure, integrity checks, concurrency tests | Not started |
+
 **Decisions required first:** all ★ decisions in PRODUCT_REQUIREMENTS §15.2 (including D-34 and D-35), open questions Q-1, Q-2, Q-4, Q-5, and a container runtime for local Supabase (R-20).
 
 | Scope | Reference |

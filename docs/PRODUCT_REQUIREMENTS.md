@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | Draft v0.2: Phase 1 approved; Phase 2 decisions still open |
+| **Status** | Draft v0.3: Phase 1 complete; Phase 2A decisions approved; 2C and later decisions still open |
 | **Date** | 2026-10-20 (v0.2 applies review corrections C-01 to C-10 and M-01 to M-11) |
 | **Decision owner** | Product owner |
 | **Related documents** | [USER_FLOWS.md](USER_FLOWS.md), [DATABASE_ARCHITECTURE.md](DATABASE_ARCHITECTURE.md), [TECHNICAL_ARCHITECTURE.md](TECHNICAL_ARCHITECTURE.md), [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md), [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md), [TESTING_STRATEGY.md](TESTING_STRATEGY.md) |
@@ -190,7 +190,7 @@ Priority uses MoSCoW: **M** = must have for MVP, **S** = should have (include if
 | ID | Pri | Requirement |
 |---|---|---|
 | FR-ORG-01 | M | A workspace (organisation) has a name, URL slug, country, base currency (USD, GBP, CAD or EUR in MVP), timezone, and date display preference. The Owner may change the base currency until the workspace's first customer PO exists; after that it is locked (C-04). |
-| FR-ORG-02 | M | Workspace settings: sales order number prefix; require independent approval (D-05); price tolerance (D-14); AI confidence threshold (D-06); duplicate look-back window in days. |
+| FR-ORG-02 | M | Workspace settings: sales order number prefix; require independent approval (D-05; only the Owner may turn it off, and the change is audited); price tolerance (D-14); AI confidence threshold (D-06); duplicate look-back window in days. |
 | FR-ORG-03 | M | Owners and Admins invite members by email with a role, resend or revoke invitations, change roles, suspend and remove members. |
 | FR-ORG-04 | M | A workspace must always have at least one active Owner. Only an Owner can grant or remove the Owner role. |
 | FR-ORG-05 | M | A user who belongs to several workspaces can switch between them. The active workspace is part of the URL so links are unambiguous. |
@@ -316,9 +316,10 @@ The full information architecture is in [DESIGN_SYSTEM.md §12](DESIGN_SYSTEM.md
 | FR-SO-02 | M | Detail view: header, address snapshots, lines with reserved and backordered quantities, price source per line, approval details, link to the intake and original document, and a timeline. |
 | FR-SO-03 | M | Confirmed sales orders are immutable apart from status changes (D-19). |
 | FR-SO-04 | M | Cancel (Approver and above, reason required): releases all reservations. Not allowed once fulfilled. |
-| FR-SO-05 | M | Mark fulfilled (Approver, Inventory Manager and above): issues the reserved quantities from stock, reducing on hand and reserved. Backordered quantities are recorded as not fulfilled by OrderPilot (D-20): the order shows, for example, "Fulfilled · 20 EA backordered (not fulfilled through OrderPilot)", and the integration event carries the backordered quantities. Fulfilling backorders inside OrderPilot is unresolved decision D-35 (M-02). |
+| FR-SO-05 | M | Mark fulfilled (Approver, Inventory Manager and above): issues the reserved quantities from stock, reducing on hand and reserved. Backordered quantities are recorded as not fulfilled by OrderPilot (D-20): the order shows, for example, "Fulfilled · 20 EA backordered (not fulfilled through OrderPilot)", and the integration event carries the backordered quantities. Fulfilling backorders inside OrderPilot is out of MVP scope (approved D-35, M-02). |
 | FR-SO-06 | M | Sales order numbers are unique per workspace, in the format `{prefix}-{year}-{sequence}`, for example `SO-2026-000123` (D-21). |
 | FR-SO-07 | S | Export a sales order as CSV and a printable view, for manual entry into an ERP until integrations exist. |
+| FR-SO-08 | M | **Mark backorder handled externally** (Phase 5, D-35): for a backordered line, an authorised user records that the backorder was handled outside OrderPilot. A reason is required; actor and timestamp are recorded; an audit event is written. It **never changes inventory**, leaves `backordered_qty` unchanged, and the UI never presents it as fulfilment by OrderPilot (\"Handled externally\", not \"Fulfilled\"). Handled backorders leave the open-backorder list. |
 
 ### 7.12 Audit history (`FR-AUD`)
 
@@ -380,6 +381,8 @@ Fixed roles, one role per user per workspace (D-04). A user can hold different r
 | Invite members, change roles (except Owner) | ✓ | ✓ | | | | |
 | Grant or remove Owner role | ✓ | | | | | |
 | Change workspace settings | ✓ | ✓ | | | | |
+| Turn off independent approval (D-05) | ✓ | | | | | |
+| Mark a backorder handled externally (FR-SO-08) | ✓ | ✓ | ✓ | | ✓ | |
 
 **Separation of duties.** With independent approval enabled (default, D-05), the submitter of an intake cannot approve it, regardless of role.
 
@@ -558,32 +561,36 @@ Each decision has a recommendation. Decisions marked ★ are the most important 
 | P1-6 | Package versions | Stable, mutually compatible versions verified before installing; exact versions pinned; no beta or canary releases |
 | P1-7 | Development preview | Interactive, development-only preview with the fictional workspace "Northstar Distribution" (§7.13) |
 | C-01 to C-10, M-01 to M-11, S-02 to S-04 | Review corrections | Applied in v0.2 of the planning documents. S-01 not adopted: `after()` may start work early, but the database queue remains the source of truth |
+| D-01 | Commercial and deployment model | **Approved (Phase 2A review):** Shared multi-tenant SaaS. Dedicated customer instances may be considered later, from the same codebase. |
+| D-02 | Terminology | **Approved (Phase 2A review):** "Customer PO" for inbound orders and "Sales order" for approved orders; database tables `inbound_orders` and `sales_orders`. |
+| D-04 | Roles | **Approved (Phase 2A review):** Six fixed workspace roles, one role per user per workspace. |
+| D-05 | Independent approval | **Approved (Phase 2A review):** Enabled by default. **Only the Owner** may disable it, and the change writes an audit record. |
+| D-06 | Verification rules | **Approved (Phase 2A review):** Every AI-suggested value requires human confirmation. Low-confidence values require individual confirmation. High-confidence lines may be confirmed in bulk (audited). |
+| D-09 | Inventory model | **Approved (Phase 2A review):** Reserve stock when an order is approved; deduct stock when the allocated quantity is fulfilled. On hand never goes negative. |
+| D-10 | Insufficient stock at approval | **Approved (Phase 2A review):** Partial reservation with the remainder backordered, or request changes, chosen per line. |
+| D-11 | Locations | **Approved (Phase 2A review):** Multiple stock locations in the database; one default location in the initial interface. |
+| D-12 | Currency | **Approved (Phase 2A review):** One base currency per workspace (USD, GBP, CAD or EUR). |
+| D-14 | Pricing authority | **Approved (Phase 2A review):** Customer-specific price takes priority over list price. Price differences require human review. |
+| D-16 | Duplicate policy | **Approved (Phase 2A review):** Duplicate purchase orders require an Approver override with a reason, under the duplicate safety requirements in DATABASE_ARCHITECTURE.md §12.1. |
+| D-21 | Sales order numbering | **Approved (Phase 2A review):** Sequential numbering per workspace with no gaps for committed sales orders. |
+| D-34 | Submitting intakes that need an override | **Approved (Phase 2A review):** Processors may submit orders containing exceptions that require an Approver override. Approval stays blocked until the Approver resolves every required override with a written reason. |
+| D-35 | Backorders | **Approved (Phase 2A review):** Allocated and backordered quantities are recorded separately. No backorder fulfilment in the MVP. A future **"Mark backorder handled externally"** action (FR-SO-08) requires a reason, records actor and timestamp, writes an audit event, never changes inventory and never implies that OrderPilot fulfilled the backorder. |
+| Q-1 to Q-5 | Database open questions | Approved; recorded in DATABASE_ARCHITECTURE.md §18 |
+| Phase 2 plan | Milestones | 2A local Supabase and schema; 2B RLS, permissions and audit foundation; 2C authentication, MFA, invitations and workspaces; 2D business transactions, extraction jobs, integrity and concurrency tests. Each milestone approved separately |
 
 ### 15.2 Unresolved decisions
 
 | ID | Decision | Recommendation | Alternatives |
 |---|---|---|---|
-| ★ D-01 | **Commercial and deployment model** | Build one multi-tenant SaaS codebase that can also be deployed as a dedicated single-customer instance (its own Supabase project and Vercel project) without code changes. Customise through configuration and feature flags, never per-customer forks. | Pure shared SaaS only; or per-customer forks (not recommended: maintenance cost grows with every customer). |
-| D-02 | **Terminology** | UI: "Customer PO" for the intake and "Sales order" for the approved result. Database: `inbound_orders` and `sales_orders`. | Use "Purchase order" internally (conflicts with ERP meaning). |
 | ★ D-03 | **Account provisioning** | Invite-only. The platform operator creates workspaces and invites the first Owner. A seeded, resettable demo workspace is used for sales demos. Self-service sign-up later. | Public self-service sign-up from day one (needs abuse protection, billing, onboarding). |
-| D-04 | **Roles** | Six fixed roles as in §8; one role per user per workspace. | Custom roles (later), or multiple roles per user. |
-| ★ D-05 | **Independent approval** | Workspace setting, **on by default**: the submitter cannot approve their own intake. Owners can switch it off for one-person order desks. | Always enforced; or off by default. |
-| ★ D-06 | **Verification rules** | Every AI field must be confirmed. Fields below a confidence threshold (default 0.85) must be confirmed one by one. Lines whose fields are all above it may be confirmed per line or in bulk. Bulk confirmation is an explicit, audited action. | Field-by-field confirmation for everything (slow for large POs); or no confirmation for high-confidence values (violates PR-02). |
 | ★ D-07 | **Extraction in MVP** | Deterministic simulated provider for a curated demo set; unknown documents go to manual entry with no fabricated values; UI labelled "Simulated". Choose the real provider after an evaluation on real anonymised POs. Candidates include Anthropic's Claude models (native PDF and image input), Azure AI Document Intelligence, AWS Textract and Google Document AI. | Integrate a real provider in MVP (cost, data processing agreement and evaluation needed first). |
 | D-08 | **File types and limits** | PDF, PNG and JPEG; 20 MB; 50 pages. TIFF, CSV, Excel and email files later. | Broader types now. |
-| ★ D-09 | **Inventory model** | Approval reserves stock (on hand unchanged); "Mark fulfilled" issues it (on hand and reserved both drop). Available = on hand − reserved. On hand may never go negative. | Deduct on approval (simpler, but cannot represent unshipped commitments); or no stock effects until ERP integration. |
-| ★ D-10 | **Insufficient stock at approval** | Approver chooses per line: reserve what is available and backorder the rest, or request changes. Backordered quantity is recorded on the sales order line and not reserved. | Block approval entirely when stock is short; or allow over-reservation. |
-| D-11 | **Locations** | Schema supports multiple locations; MVP UI uses one default location per workspace. | Single-location schema (painful migration later). |
-| ★ D-12 | **Currency** | One base currency per workspace (USD, GBP, CAD or EUR). A PO in another currency is a blocking exception. No FX in MVP. | Multi-currency orders with manual exchange rates. |
 | D-13 | **Tax** | No tax calculation. Printed tax amounts are captured for reference only. The ERP remains responsible for tax. | Basic VAT or sales tax calculation (jurisdiction complexity, high error risk). |
-| ★ D-14 | **Pricing authority and tolerance** | Expected price = customer-specific price if present, else list price. Default tolerance: exact match at the stored 4-decimal precision (C-05); configurable as a percentage. Mismatches block until the reviewer chooses which price applies; the approver sees the choice. | Always use our price; or always accept the PO price. |
 | D-15 | **Missing price on PO** | Apply the expected price, label it with its source, raise a warning. This is a company business rule, not invented PO data. | Treat as blocking. |
-| ★ D-16 | **Duplicate policy** | Same customer + normalised PO number on an active intake or non-cancelled sales order, or identical file content: **blocking**, approver override with reason. Similar content with a different PO number: **warning**. Look-back window for similarity: 30 days, configurable. | Hard block with no override (fails for customers who reuse PO numbers). |
 | D-17 | **Units of measure** | One selling unit per product in MVP. A unit mismatch is blocking; the reviewer converts and records the conversion. Conversion tables in a later phase. | Build unit conversions into MVP (more scope, but a frequent real-world problem). |
 | D-18 | **Learning customer item aliases** | Mappings the reviewer marks "Remember" are saved as aliases at approval, attributed and audited, and editable afterwards. | Save immediately on confirmation (risk of saving mappings from orders that are later rejected). |
 | D-19 | **Sales order changes** | Confirmed sales orders are immutable. To change one: cancel (releases stock) and process again. Amendments later. | Allow line edits after approval (requires re-approval rules). |
 | D-20 | **Fulfilment scope** | Only whole-order "Mark fulfilled" in MVP, so inventory stays correct. No picking, shipping or partial shipments. | No fulfilment at all (stock would never be consumed); or partial shipments (more scope). |
-| D-21 | **Sales order numbering** | `{prefix}-{year}-{6-digit sequence}` per workspace, gap-free, generated inside the approval transaction. | Global sequence with gaps; or customer-defined patterns. |
 | ★ D-22 | **Document retention** | Originals are kept for the life of the workspace and never deleted by users. Define a retention period per region with legal advice (tax record rules typically require several years). | Fixed period for all regions. |
 | ★ D-23 | **Hosting region and data residency** | Start with one EU region (for example Frankfurt or London) for the shared environment, which satisfies the strictest of the four markets. Offer US or Canadian hosting through dedicated instances (D-01) when a customer requires it. Requires a data processing agreement with each provider. | US region first; or multiple shared regions from the start. |
 | ★ D-24 | **Authentication strength** | Email and password plus TOTP MFA, required for Owners and Admins and optional for others. Google and Microsoft sign-in later; SAML SSO for enterprise later. | MFA optional for everyone; or magic links only. |
@@ -596,8 +603,6 @@ Each decision has a recommendation. Decisions marked ★ are the most important 
 | D-31 | **CSV import** | Include CSV import for customers, products and opening stock in MVP (Should have). A realistic demo or pilot is impractical without it. | Manual entry only. |
 | D-32 | **Customer-specific prices** | Include in MVP (Should have) so price validation is meaningful. Scheduled in Phase 3. | List price only. |
 | D-33 | **Trademark and domain check** | Check trademark and domain availability for "OrderPilot" in the US, UK, EU and Canada before investing in brand assets or public marketing. Development continues under the name meanwhile. | Rename now; or defer the check until after pilots (risk of a forced rename). |
-| ★ D-34 | **Submitting intakes that need an override (Phase 2)** | Proposed in C-01: processors may submit while open blocking exceptions are all overridable; they reach the approver as **Override required**, and Approve stays disabled until each is overridden with a reason. **Unresolved:** the documents describe this flow, but it needs your explicit approval before the database gate is written. | Approvers must open the intake in review and override before submission (slower, intakes wait unseen). |
-| ★ D-35 | **Backorder follow-up (Phase 2)** | MVP: backordered quantities are recorded and shown ("20 EA backordered, not fulfilled through OrderPilot"), listed on the dashboard and sent in the integration event, but not fulfilled inside OrderPilot. Later: an "Allocate backorder" action when stock arrives. **Unresolved.** | Allow backorders to be allocated and fulfilled in MVP (adds partial fulfilment scope). |
 
 ---
 
