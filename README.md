@@ -3,8 +3,8 @@
 Customer PO intake, validation and approval for wholesalers and distributors.
 Every customer PO is checked and approved before it becomes an order.
 
-**Status: Phase 1 (foundation and development preview).** There is no backend yet:
-no Supabase, no sign-in and no real data. The planning documents are in [docs/](docs/).
+**Status: Phase 2A (local database schema).** The database runs locally; there is no
+sign-in, no data access from the app and no real data yet. The planning documents are in [docs/](docs/).
 
 ## Run it locally
 
@@ -58,6 +58,25 @@ of exception), **IN-001043** (a clean PO you can submit), **Approvals → IN-001
 Stop `corepack pnpm dev` before running `test:e2e`; the tests start their own servers on
 ports 3100 and 3200. Set `PW_ALL_BROWSERS=1` (after `playwright install`) to run Firefox and
 WebKit as well.
+
+## Local database (Phase 2A)
+
+Requires Docker Desktop running, with `docker` on your PATH (the Docker installer adds
+`~/.docker/bin` to `~/.zprofile`; open a new terminal after installing). Everything runs
+on your Mac only: no Supabase account or cloud project is used, and the Supabase CLI's
+telemetry is switched off in every script.
+
+| Command                   | What it does                                                                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `corepack pnpm db:start`  | Starts the local Postgres database (port 54322) and applies migrations and seed data. Only the database and its metadata service run in Phase 2A |
+| `corepack pnpm db:reset`  | Rebuilds the **local** OrderPilot database from empty: all migrations, then `supabase/seed.sql`                                                  |
+| `corepack pnpm db:test`   | Runs the pgTAP database tests in `supabase/tests/database`                                                                                       |
+| `corepack pnpm db:types`  | Regenerates `src/server/db/database.types.ts` from the local schema                                                                              |
+| `corepack pnpm db:status` | Shows the connection URL and which services are running                                                                                          |
+| `corepack pnpm db:stop`   | Stops the local database (data is kept until the next reset)                                                                                     |
+
+Local connection string: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+(well-known local-only credentials; never used outside your machine).
 
 ## Project structure
 

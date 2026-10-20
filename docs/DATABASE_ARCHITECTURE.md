@@ -952,5 +952,6 @@ Lists use keyset (cursor) pagination. Dashboard counts come from aggregate SQL f
 | Append-only protection | — | Movements, audit events, raw extraction output, stored documents (2B) |
 | Seed | Two fictional workspaces with master data, stock and opening-balance movements | Users and members per role (2B) |
 | Migrations | `supabase/migrations/20261020130000` to `20261020130600` | |
-| Tests | `supabase/tests/database/001` to `005` (pgTAP) | Isolation and permission matrices (2B), concurrency (2D) |
+| Tests | `supabase/tests/database/001` to `005` (pgTAP): **130 checks, all passing** on Supabase Postgres 17.11 after a clean reset | Isolation and permission matrices (2B), concurrency (2D) |
+| Generated types | `src/server/db/database.types.ts` (`corepack pnpm db:types`) | Regenerated after every schema change |
 
