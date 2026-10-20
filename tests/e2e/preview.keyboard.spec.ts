@@ -1,9 +1,15 @@
 import { expect, test } from "@playwright/test";
 
+/** Safari and WebKit move between links with Option+Tab; Tab alone skips them by default. */
+const tabKey = (browserName: string) => (browserName === "webkit" ? "Alt+Tab" : "Tab");
+
 test.describe("keyboard navigation", () => {
-  test("skip link is the first stop and moves focus to the main content", async ({ page }) => {
+  test("skip link is the first stop and moves focus to the main content", async ({
+    page,
+    browserName,
+  }) => {
     await page.goto("/preview/dashboard");
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(tabKey(browserName));
     const skip = page.getByRole("link", { name: "Skip to main content" });
     await expect(skip).toBeFocused();
     await expect(skip).toBeInViewport();
@@ -11,10 +17,13 @@ test.describe("keyboard navigation", () => {
     await expect(page).toHaveURL(/#main$/);
   });
 
-  test("every interactive element shows a visible focus indicator", async ({ page }) => {
+  test("every interactive element shows a visible focus indicator", async ({
+    page,
+    browserName,
+  }) => {
     await page.goto("/preview/customer-pos");
     for (let i = 0; i < 12; i++) {
-      await page.keyboard.press("Tab");
+      await page.keyboard.press(tabKey(browserName));
       const outline = await page.evaluate(() => {
         const el = document.activeElement as HTMLElement | null;
         if (!el || el === document.body) return "none";
