@@ -573,7 +573,7 @@ export const MOVEMENTS: PreviewMovement[] = [
     onHandAfter: "64",
     reservedAfter: "24",
     at: "2026-10-20T13:15:00Z",
-    actor: "Priya Raman",
+    actor: "Ahmed Karim",
     reference: "SO-2026-000412 approved",
   },
   {
@@ -621,7 +621,7 @@ export const MOVEMENTS: PreviewMovement[] = [
     onHandAfter: "210",
     reservedAfter: "40",
     at: "2026-10-18T19:45:00Z",
-    actor: "Priya Raman",
+    actor: "Ahmed Karim",
     reference: "SO-2026-000409 cancelled",
   },
 ];

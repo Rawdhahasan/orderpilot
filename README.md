@@ -29,12 +29,12 @@ Open **http://localhost:3000** and sign in, for example:
 | Person (fictional) | Email                            | Role                                             |
 | ------------------ | -------------------------------- | ------------------------------------------------ |
 | Jordan Ellis       | `jordan.ellis@northstar.example` | Processor: upload and review                     |
-| Priya Raman        | `priya.raman@northstar.example`  | Approver: approve, override                      |
+| Ahmed Karim        | `ahmed.karim@northstar.example`  | Approver: approve, override                      |
 | Marc Dubois        | `marc.dubois@northstar.example`  | Inventory Manager: stock, fulfilment             |
 | Sofia Brandt       | `sofia.brandt@northstar.example` | Owner: sets up an authenticator on first sign-in |
 
 **Try the core flow:** as Jordan, upload `tests/fixtures/documents/01-harbor-pine-clean.pdf`
-(Customer POs → Upload PO), confirm the values and submit. As Priya, open Approvals,
+(Customer POs → Upload PO), confirm the values and submit. As Ahmed, open Approvals,
 approve, and open the new sales order. As Marc, mark it fulfilled. The other fixtures show
 a messy PO with exceptions (`02`), a two-page PO (`03`), a failed-then-recovered
 extraction (`04`), and an unknown document that opens in manual entry (`90`). Emails

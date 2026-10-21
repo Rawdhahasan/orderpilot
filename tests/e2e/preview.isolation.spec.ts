@@ -34,7 +34,7 @@ test.describe("preview isolation: no persistence, no network, no backend", () =>
   test("review changes stay in memory and disappear on reload", async ({ page }) => {
     await page.goto("/preview/customer-pos/in-001042");
     await page.getByRole("button", { name: "Confirm customer", exact: true }).click();
-    await expect(page.getByText("Confirmed by Priya Raman", { exact: true })).toBeVisible();
+    await expect(page.getByText("Confirmed by Ahmed Karim", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Confirm Customer PO number" }).click();
     await expect(page.getByRole("button", { name: "Confirm Customer PO number" })).toHaveCount(0);
 
@@ -59,12 +59,12 @@ test.describe("preview isolation: no persistence, no network, no backend", () =>
     await expect(
       page.getByText("Visual demonstration only. Not an authorisation mechanism."),
     ).toBeVisible();
-    await page.getByRole("menuitemradio", { name: /Sam Patel/ }).click();
+    await page.getByRole("menuitemradio", { name: /Sam Price/ }).click();
     await expect(
       page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: /^Approvals/ }),
     ).toHaveCount(0);
     expect(await storageState(page)).toEqual({ local: 0, session: 0, cookie: "", databases: 0 });
     await page.reload();
-    await expect(page.getByTestId("persona-switcher")).toContainText("Priya Raman");
+    await expect(page.getByTestId("persona-switcher")).toContainText("Ahmed Karim");
   });
 });

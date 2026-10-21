@@ -90,7 +90,7 @@ All personas are illustrative composites for design purposes. Any numbers in the
 - **Needs from OrderPilot:** A fast review screen with the original document next to the data; keyboard-friendly editing; clear list of what is wrong and how to fix it; mappings remembered for next time.
 - **Role in product:** `processor`.
 
-### P2. Approver: "Priya", operations manager
+### P2. Approver: "Ahmed", operations manager
 - **Context:** Runs operations at an electrical and industrial supplies wholesaler near Birmingham, UK. Approves orders, handles exceptions, manages the order desk team.
 - **Goals:** Approve good orders quickly; see risk at a glance (price changes, overrides, stock shortfalls, credit holds); keep the team accountable.
 - **Frustrations:** Approving without context; discovering problems after shipping; no record of who changed what.

@@ -52,10 +52,10 @@ export const USERS: PreviewUser[] = [
     lastActiveAt: "2026-10-20T14:48:00Z",
   },
   {
-    id: "u-priya",
-    name: "Priya Raman",
-    initials: "PR",
-    email: "priya.raman@northstar.example",
+    id: "u-ahmed",
+    name: "Ahmed Karim",
+    initials: "AK",
+    email: "ahmed.karim@northstar.example",
     role: "approver",
     status: "active",
     lastActiveAt: "2026-10-20T15:31:00Z",
@@ -98,9 +98,9 @@ export const USERS: PreviewUser[] = [
   },
   {
     id: "u-sam",
-    name: "Sam Patel",
+    name: "Sam Price",
     initials: "SP",
-    email: "sam.patel@northstar.example",
+    email: "sam.price@northstar.example",
     role: "viewer",
     status: "suspended",
     lastActiveAt: "2026-09-28T16:20:00Z",
@@ -117,7 +117,7 @@ export const PENDING_INVITATIONS = [
 ];
 
 /** People the preview role switcher can show the product as. Demonstration only. */
-export const PERSONA_IDS = ["u-sofia", "u-alex", "u-priya", "u-jordan", "u-marc", "u-sam"] as const;
+export const PERSONA_IDS = ["u-sofia", "u-alex", "u-ahmed", "u-jordan", "u-marc", "u-sam"] as const;
 
 export function userById(id: string | null | undefined): PreviewUser | undefined {
   return id ? USERS.find((user) => user.id === id) : undefined;

@@ -42,7 +42,7 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
     expect(Number(reserved("JAN-1001"))).toBe(before + 12);
     await so.click();
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(orderNumber);
-    await expect(page.getByTestId("order-status-line")).toContainText("Confirmed by Priya Raman");
+    await expect(page.getByTestId("order-status-line")).toContainText("Confirmed by Ahmed Karim");
 
     // Fulfilment by the Inventory Manager issues the reservation.
     const marc = await open();
@@ -98,7 +98,7 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
     await page.getByRole("button", { name: "Cancel order" }).click();
     await page.getByLabel("Reason for cancelling").fill("Customer cancelled by phone");
     await page.getByRole("button", { name: "Cancel order" }).click();
-    await expect(page.getByTestId("order-status-line")).toContainText("Cancelled by Priya Raman");
+    await expect(page.getByTestId("order-status-line")).toContainText("Cancelled by Ahmed Karim");
   });
 
   test("request changes and reject need a reason", async ({ page }) => {
@@ -122,7 +122,7 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
     await expect(page.getByText("This order is in review.")).toBeVisible();
     await page.goto(`${NS}/customer-pos/${changes}`);
     await expect(
-      page.getByText(/Changes requested by Priya Raman: Check the quantity with the customer/),
+      page.getByText(/Changes requested by Ahmed Karim: Check the quantity with the customer/),
     ).toBeVisible();
 
     await page.goto(`${NS}/approvals/${reject}`);
@@ -131,7 +131,7 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
     await page.getByRole("button", { name: "Reject" }).click();
     await expect(page.getByText("This order is rejected.")).toBeVisible();
     await page.goto(`${NS}/customer-pos/${reject}`);
-    await expect(page.getByText(/Rejected by Priya Raman: Not our customer's order/)).toBeVisible();
+    await expect(page.getByText(/Rejected by Ahmed Karim: Not our customer's order/)).toBeVisible();
   });
 
   test("the submitter cannot approve their own order (independent approval)", async ({ page }) => {

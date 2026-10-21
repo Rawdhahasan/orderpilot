@@ -80,11 +80,11 @@ stateDiagram-v2
 
 ### 3.2 Approver: reviewing the queue from a phone
 
-1. Priya opens the **Approvals** queue on a phone between meetings. Three intakes are waiting; the oldest has waited 2 hours.
+1. Ahmed opens the **Approvals** queue on a phone between meetings. Three intakes are waiting; the oldest has waited 2 hours.
 2. The approval summary for Jordan's intake shows: customer, ship-to, totals; "3 values changed from AI suggestion"; one alias to be remembered; one unit conversion with Jordan's note; one stock warning.
-3. Priya taps **Approve**. The system rechecks stock inside the transaction: 40 available, 60 requested. Priya is asked to choose: **Reserve 40 and backorder 20**, or **Request changes**. Priya chooses backorder.
+3. Ahmed taps **Approve**. The system rechecks stock inside the transaction: 40 available, 60 requested. Ahmed is asked to choose: **Reserve 40 and backorder 20**, or **Request changes**. Ahmed chooses backorder.
 4. Sales order `SO-2026-000412` is created. Stock for that product now shows 40 more reserved. The intake timeline shows every step, from upload to approval.
-5. The next intake is from a customer on credit hold. Priya cannot approve without an override. Priya taps **Request changes** with "Hold until finance confirms payment".
+5. The next intake is from a customer on credit hold. Ahmed cannot approve without an override. Ahmed taps **Request changes** with "Hold until finance confirms payment".
 
 ### 3.3 Inventory Manager: end-of-day stock
 
@@ -253,7 +253,7 @@ Overrides always require a reason and are shown prominently to the approver. An 
 6. **Reject** (reason required) → `rejected`, terminal; used for orders the business will not fulfil. `inbound_order.rejected`
 
 **Edge cases**
-- Two approvers click Approve at the same time → one succeeds; the other sees "Already approved by Priya as SO-2026-000412" with a link. Exactly one sales order exists.
+- Two approvers click Approve at the same time → one succeeds; the other sees "Already approved by Ahmed as SO-2026-000412" with a link. Exactly one sales order exists.
 - Double-click on Approve → same result as above; the button is also disabled while the request is in flight.
 - Customer placed on hold after submission → approval transaction fails with `CUSTOMER_ON_HOLD`; approver overrides or requests changes.
 - Product discontinued after submission → approval fails; approver requests changes.

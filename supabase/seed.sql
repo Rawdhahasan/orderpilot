@@ -96,15 +96,15 @@ with people (id, org, role, full_name, email) as (
   values
     ('00000000-0000-4000-a500-000000000001'::uuid, '00000000-0000-4000-a000-000000000001'::uuid, 'owner', 'Sofia Brandt', 'sofia.brandt@northstar.example'),
     ('00000000-0000-4000-a500-000000000002', '00000000-0000-4000-a000-000000000001', 'admin', 'Alex Moreno', 'alex.moreno@northstar.example'),
-    ('00000000-0000-4000-a500-000000000003', '00000000-0000-4000-a000-000000000001', 'approver', 'Priya Raman', 'priya.raman@northstar.example'),
+    ('00000000-0000-4000-a500-000000000003', '00000000-0000-4000-a000-000000000001', 'approver', 'Ahmed Karim', 'ahmed.karim@northstar.example'),
     ('00000000-0000-4000-a500-000000000004', '00000000-0000-4000-a000-000000000001', 'processor', 'Jordan Ellis', 'jordan.ellis@northstar.example'),
     ('00000000-0000-4000-a500-000000000005', '00000000-0000-4000-a000-000000000001', 'inventory_manager', 'Marc Dubois', 'marc.dubois@northstar.example'),
-    ('00000000-0000-4000-a500-000000000006', '00000000-0000-4000-a000-000000000001', 'viewer', 'Sam Patel', 'sam.patel@northstar.example'),
+    ('00000000-0000-4000-a500-000000000006', '00000000-0000-4000-a000-000000000001', 'viewer', 'Sam Price', 'sam.price@northstar.example'),
     ('00000000-0000-4000-b500-000000000001', '00000000-0000-4000-b000-000000000001', 'owner', 'Imogen Hale', 'imogen.hale@bayview.example'),
     ('00000000-0000-4000-b500-000000000002', '00000000-0000-4000-b000-000000000001', 'admin', 'Rhys Okafor', 'rhys.okafor@bayview.example'),
     ('00000000-0000-4000-b500-000000000003', '00000000-0000-4000-b000-000000000001', 'approver', 'Freya Lund', 'freya.lund@bayview.example'),
     ('00000000-0000-4000-b500-000000000004', '00000000-0000-4000-b000-000000000001', 'processor', 'Owen Pryce', 'owen.pryce@bayview.example'),
-    ('00000000-0000-4000-b500-000000000005', '00000000-0000-4000-b000-000000000001', 'inventory_manager', 'Tariq Begum', 'tariq.begum@bayview.example'),
+    ('00000000-0000-4000-b500-000000000005', '00000000-0000-4000-b000-000000000001', 'inventory_manager', 'Tariq Nasir', 'tariq.nasir@bayview.example'),
     ('00000000-0000-4000-b500-000000000006', '00000000-0000-4000-b000-000000000001', 'viewer', 'Ellie Marsh', 'ellie.marsh@bayview.example')
 ), users as (
   -- Auth reads these token columns as strings, so they must be '' (not null).

@@ -119,7 +119,7 @@ create function pg_temp.failures(p_result text) returns text[] language sql as $
     from jsonb_array_elements(case when p_result like 'ERR:%' then '[]'::jsonb else coalesce(p_result::jsonb -> 'failures', '[]'::jsonb) end) f
 $$;
 
--- Users (supabase/seed.sql): Northstar a5…01 Owner, 02 Admin, 03 Approver (Priya),
+-- Users (supabase/seed.sql): Northstar a5…01 Owner, 02 Admin, 03 Approver (Ahmed),
 -- 04 Processor (Jordan), 05 Inventory Manager (Marc), 06 Viewer; Bayview b5…03 Approver.
 create temp table u (role text primary key, id uuid);
 insert into u values

@@ -447,7 +447,7 @@ Optimistic UI updates are used only for low-risk interactions (for example confi
 | Unexpected error | Route error boundary with plain-language message, **Try again**, and the request ID |
 | Not found or not permitted | Generic not-found page (does not reveal existence) |
 | Form validation | Inline field errors; input preserved; focus moves to the first error |
-| Business rule refusal | Specific message from the error code, for example "This order was already approved by Priya as SO-2026-000412" |
+| Business rule refusal | Specific message from the error code, for example "This order was already approved by Ahmed as SO-2026-000412" |
 | Background action success | Toast with a link to the result |
 | Persistent state (offline, demo, simulated extraction) | Banner |
 | Empty list | Explains what belongs here and offers the next action (for example **Upload PO**) |

@@ -78,7 +78,7 @@ test.describe("interactive preview journeys", () => {
       .getByLabel("Reason (required)")
       .fill("Finance confirmed payment in transit");
     await overrideDialog.getByRole("button", { name: "Override" }).click();
-    await expect(page.getByText(/Overridden by Priya Raman/)).toBeVisible();
+    await expect(page.getByText(/Overridden by Ahmed Karim/)).toBeVisible();
 
     await approve.click();
     const stock = page.getByRole("dialog", { name: /Stock is short/ });
@@ -91,7 +91,7 @@ test.describe("interactive preview journeys", () => {
 
   test("roles change what the preview shows", async ({ page }) => {
     await page.goto("/preview/dashboard");
-    await viewAs(page, "Sam Patel");
+    await viewAs(page, "Sam Price");
     await expect(page.getByRole("button", { name: /Upload PO/ })).toHaveCount(0);
     await goViaNav(page, "Customer POs");
     await page.getByRole("link", { name: "IN-001042" }).click();

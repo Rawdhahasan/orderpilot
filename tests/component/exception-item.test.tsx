@@ -42,11 +42,11 @@ describe("exception items (DESIGN_SYSTEM.md §9.5)", () => {
         scope="Header"
         message="Already received."
         status="overridden"
-        resolution="Overridden by Priya Raman"
+        resolution="Overridden by Ahmed Karim"
         actions={<button type="button">Override</button>}
       />,
     );
     expect(screen.queryByRole("button", { name: "Override" })).toBeNull();
-    expect(screen.getByText("Overridden by Priya Raman")).toBeVisible();
+    expect(screen.getByText("Overridden by Ahmed Karim")).toBeVisible();
   });
 });

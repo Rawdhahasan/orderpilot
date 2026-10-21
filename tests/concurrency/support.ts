@@ -7,7 +7,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 const ORG = "00000000-0000-4000-a000-000000000001";
 export const USERS = {
-  approver: { id: "00000000-0000-4000-a500-000000000003", email: "priya.raman@northstar.example" },
+  approver: { id: "00000000-0000-4000-a500-000000000003", email: "ahmed.karim@northstar.example" },
   processor: {
     id: "00000000-0000-4000-a500-000000000004",
     email: "jordan.ellis@northstar.example",

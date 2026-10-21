@@ -15,7 +15,7 @@ type PersonaContextValue = { user: PreviewUser; role: Role; setUserId: (id: stri
 
 const PersonaContext = createContext<PersonaContextValue | null>(null);
 
-export const DEFAULT_PERSONA_ID = "u-priya";
+export const DEFAULT_PERSONA_ID = "u-ahmed";
 
 export function PersonaProvider({ children }: { children: ReactNode }) {
   const [userId, setUserId] = useState(DEFAULT_PERSONA_ID);

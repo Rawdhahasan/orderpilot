@@ -32,15 +32,15 @@ export const AUTH_DIR = join(__dirname, "../.auth");
 export const USERS = {
   nsOwner: "sofia.brandt@northstar.example",
   nsAdmin: "alex.moreno@northstar.example",
-  nsApprover: "priya.raman@northstar.example",
+  nsApprover: "ahmed.karim@northstar.example",
   nsProcessor: "jordan.ellis@northstar.example",
   nsInventory: "marc.dubois@northstar.example",
-  nsViewer: "sam.patel@northstar.example",
+  nsViewer: "sam.price@northstar.example",
   bvOwner: "imogen.hale@bayview.example",
   bvAdmin: "rhys.okafor@bayview.example",
   bvApprover: "freya.lund@bayview.example",
   bvProcessor: "owen.pryce@bayview.example",
-  bvInventory: "tariq.begum@bayview.example",
+  bvInventory: "tariq.nasir@bayview.example",
   bvViewer: "ellie.marsh@bayview.example",
 } as const;
 

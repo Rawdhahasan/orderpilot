@@ -480,7 +480,7 @@ Low-fidelity wireframes to agree structure before visual design.
 │ ADMIN    │ └──────────────────────────────────┘ └─────────────────────────────┘ │
 │ Audit log│ ┌──────────────────────────────────┐ ┌─────────────────────────────┐ │
 │ Settings │ │ This week                        │ │ Recent activity             │ │
-│          │ │ Approved 61 · Median 1 h 42 m    │ │ Priya approved IN-001041 …  │ │
+│          │ │ Approved 61 · Median 1 h 42 m    │ │ Ahmed approved IN-001041 …  │ │
 │ [User]   │ └──────────────────────────────────┘ └─────────────────────────────┘ │
 └──────────┴──────────────────────────────────────────────────────────────────────┘
 ```
@@ -529,7 +529,7 @@ At 1024–1279 px the exceptions rail becomes a drawer. Below 1024 px, Document 
 │ DECISIONS (4)                             ▸   │
 │  • Unit converted: line 4, 5 CS → 60 EA       │
 │  • Price: line 9 uses customer price          │
-│  • Override: duplicate PO (Priya, reason …)   │
+│  • Override: duplicate PO (Ahmed, reason …)   │
 │ STOCK                                         │
 │  ▲ Line 7: 60 requested, 40 available         │
 │ ALIASES TO REMEMBER (1)                   ▸   │

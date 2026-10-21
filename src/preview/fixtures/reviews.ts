@@ -481,7 +481,7 @@ export const APPROVALS: PreviewApproval[] = [
         field: "Ship-to",
         ai: "Accounts payable, 1200 Kettering Blvd",
         final: "Facilities depot, 77 Industrial Ct",
-        by: "Priya Raman",
+        by: "Ahmed Karim",
       },
     ],
     decisions: [],

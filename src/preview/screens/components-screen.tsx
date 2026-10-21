@@ -171,7 +171,7 @@ export function ComponentsScreen() {
             scope="Header"
             message="PO 88213 was already received."
             status="overridden"
-            resolution="Overridden by Priya Raman: “Customer reuses PO numbers for weekly releases”"
+            resolution="Overridden by Ahmed Karim: “Customer reuses PO numbers for weekly releases”"
           />
         </div>
       </Section>
@@ -248,7 +248,7 @@ export function ComponentsScreen() {
           Simulated extraction (demo): values were produced by the simulated provider.
         </Banner>
         <Banner tone="warning">
-          Changes requested by Priya Raman: “Confirm the ship-to with the customer.”
+          Changes requested by Ahmed Karim: “Confirm the ship-to with the customer.”
         </Banner>
         <Button
           onClick={() =>
@@ -319,7 +319,7 @@ export function ComponentsScreen() {
             {
               id: "3",
               kind: "approval",
-              actor: "Priya Raman",
+              actor: "Ahmed Karim",
               action: "approved and created SO-2026-000412",
               when: "just now",
               whenAbsolute: "Oct 20, 2026, 11:42 AM",
