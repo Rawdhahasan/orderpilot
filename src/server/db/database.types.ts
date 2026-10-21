@@ -2164,6 +2164,7 @@ export type Database = {
         };
         Returns: string;
       };
+      dashboard_summary: { Args: { p_organization_id: string }; Returns: Json };
       describe_invitation: {
         Args: { p_token: string };
         Returns: {
@@ -2173,6 +2174,21 @@ export type Database = {
           organization_slug: string;
           role: Database["public"]["Enums"]["member_role"];
           state: string;
+        }[];
+      };
+      entity_timeline: {
+        Args: { p_entity_id: string; p_entity_type: string; p_limit?: number };
+        Returns: {
+          action: string;
+          actor_name: string;
+          actor_type: Database["public"]["Enums"]["actor_type"];
+          changes: Json;
+          entity_id: string;
+          entity_type: string;
+          id: number;
+          metadata: Json;
+          occurred_at: string;
+          reason: string;
         }[];
       };
       expected_prices: {
@@ -2234,6 +2250,10 @@ export type Database = {
         Returns: string;
       };
       issue_invitation_token: { Args: { p_invitation_id: string }; Returns: string };
+      mark_backorder_handled: {
+        Args: { p_reason: string; p_sales_order_line_id: string };
+        Returns: Json;
+      };
       match_customers: {
         Args: { p_account?: string; p_name: string; p_organization_id: string };
         Returns: {

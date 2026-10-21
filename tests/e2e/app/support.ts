@@ -255,3 +255,39 @@ export async function clearMail() {
 export function formAlert(page: Page) {
   return page.locator('[role="alert"]:not(#__next-route-announcer__)');
 }
+
+/**
+ * A customer PO already reviewed and submitted (fixture built directly in the
+ * local database, attributed to the given submitter). Returns its id.
+ * lines: SKUs of the Northstar seed catalogue with quantities and prices.
+ */
+export function submittedIntake(options: {
+  po: string;
+  customer?: string;
+  submittedBy?: string;
+  lines: { sku: string; qty: number; price: number }[];
+}): string {
+  const id = crypto.randomUUID();
+  const doc = crypto.randomUUID();
+  const org = "00000000-0000-4000-a000-000000000001";
+  const customer = options.customer ?? "00000000-0000-4000-a200-000000000002";
+  const submitter = options.submittedBy ?? "00000000-0000-4000-a500-000000000004";
+  const reference = `IN-${String(Math.floor(Math.random() * 1e9)).padStart(9, "0")}`;
+  localSql(`
+    insert into public.source_documents (id, organization_id, original_filename, mime_type, size_bytes, page_count, sha256, upload_status, uploaded_by, stored_at)
+    values ('${doc}', '${org}', '${options.po}.pdf', 'application/pdf', 1000, 1, encode(sha256(convert_to('${doc}', 'UTF8')), 'hex'), 'stored', '${submitter}', now());
+    insert into public.inbound_orders (id, organization_id, reference, source_document_id, status, customer_id, customer_po_number, currency,
+      ship_to, validated_version, submitted_by, submitted_at)
+    values ('${id}', '${org}', '${reference}', '${doc}', 'pending_approval', '${customer}', '${options.po}', 'USD',
+      '{"line1": "400 Gateway Blvd", "city": "Dublin", "postal_code": "43017", "country_code": "US"}', 1, '${submitter}', now());
+    ${options.lines
+      .map(
+        (
+          l,
+          i,
+        ) => `insert into public.inbound_order_lines (organization_id, inbound_order_id, line_no, product_id, match_method, quantity, unit_price, price_source)
+      select '${org}', '${id}', ${i + 1}, p.id, 'sku', ${l.qty}, ${l.price}, 'list_price' from public.products p where p.organization_id = '${org}' and p.sku = '${l.sku}';`,
+      )
+      .join("\n")}`);
+  return id;
+}

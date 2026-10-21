@@ -3,10 +3,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { PageHeader } from "@/components/layout/page-header";
+import { PageHeader, SectionHeading } from "@/components/layout/page-header";
 import { IntakeStatusBadge } from "@/components/status/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { can } from "@/domain/auth/permissions";
+import { EntityTimeline } from "@/features/audit/timeline";
 import { ExceptionsPanel } from "@/features/review/exceptions-panel";
 import { toPanel } from "@/features/review/panel";
 import { loadReview, prepareDraft } from "@/features/review/server";
@@ -309,6 +310,19 @@ export default async function IntakePage({
               </CardContent>
             </Card>
           ) : null}
+          <section aria-labelledby="intake-history">
+            <SectionHeading id="intake-history">History</SectionHeading>
+            <Card>
+              <CardContent className="pt-4">
+                <EntityTimeline
+                  supabase={supabase}
+                  entityType="inbound_order"
+                  entityId={intakeId}
+                  format={fmt.dateTime}
+                />
+              </CardContent>
+            </Card>
+          </section>
           {canReview && intake.status === "extraction_failed" ? (
             <Card>
               <CardContent className="pt-5">

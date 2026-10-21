@@ -178,6 +178,8 @@ flowchart LR
 
 **Exit criteria:** the full core workflow passes end to end; parallel approvals produce one sales order; invariants hold after every E2E run; dashboard shows "not enough data" on an empty workspace.
 
+**Status:** built. Approval queue (oldest first, customer and submitter filters, Override required badge) and approval summary (customer, ship-to, totals, lines with availability, exceptions with overrides, changes from AI suggestions, reviewer note, history); approve with the stock decision step, request changes and reject with reasons, independent approval; sales order list (search, status and date filters) and detail (reserved and backordered quantities, price sources, approval and fulfilment details, history), mark fulfilled, cancel, mark backorder handled externally (FR-SO-08, inventory unchanged), CSV export; integration outbox events; entity timelines for every member and the workspace audit log with filters and CSV export (Owner, Admin); role-aware dashboard from real data with "Not enough data yet" below five approvals. Not built: document download audit events (FR-AUD-07, Should).
+
 ### Phase 6: Hardening, accessibility, refinement and demo
 
 | Scope | Notes |
