@@ -2155,6 +2155,21 @@ export type Database = {
         };
         Returns: string;
       };
+      create_organization: {
+        Args: {
+          p_base_currency: string;
+          p_country_code: string;
+          p_is_demo?: boolean;
+          p_legal_name?: string;
+          p_locale: string;
+          p_name: string;
+          p_owner_user_id: string;
+          p_sales_order_prefix?: string;
+          p_slug: string;
+          p_timezone: string;
+        };
+        Returns: string;
+      };
       create_pending_document: {
         Args: {
           p_filename: string;
@@ -2240,6 +2255,18 @@ export type Database = {
         Args: { p_expected_version: number; p_sales_order_id: string };
         Returns: Json;
       };
+      import_customers: {
+        Args: { p_dry_run?: boolean; p_organization_id: string; p_rows: Json };
+        Returns: Json;
+      };
+      import_opening_stock: {
+        Args: { p_dry_run?: boolean; p_organization_id: string; p_rows: Json };
+        Returns: Json;
+      };
+      import_products: {
+        Args: { p_dry_run?: boolean; p_organization_id: string; p_rows: Json };
+        Returns: Json;
+      };
       intake_duplicate_info: { Args: { p_inbound_order_id: string }; Returns: Json };
       invite_member: {
         Args: {
@@ -2280,6 +2307,7 @@ export type Database = {
         Args: { p_note?: string; p_product_id: string; p_quantity: number; p_reference?: string };
         Returns: Json;
       };
+      record_document_download: { Args: { p_document_id: string }; Returns: undefined };
       record_mfa_reset: { Args: { p_reason: string; p_user_id: string }; Returns: number };
       record_validation: {
         Args: { p_exceptions: Json; p_inbound_order_id: string; p_version: number };
@@ -2296,6 +2324,7 @@ export type Database = {
         Args: { p_expected_version: number; p_inbound_order_id: string; p_reason: string };
         Returns: Json;
       };
+      reset_demo_workspace: { Args: { p_organization_id: string }; Returns: string };
       retry_extraction: {
         Args: { p_expected_version: number; p_inbound_order_id: string };
         Returns: string;

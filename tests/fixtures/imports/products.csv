@@ -1,0 +1,3 @@
+sku,name,selling_uom,list_price,reorder_point
+IMP-1,Imported item one (fictional),EA,2.50,5
+IMP-2,Imported item two (fictional),CS,18.00,

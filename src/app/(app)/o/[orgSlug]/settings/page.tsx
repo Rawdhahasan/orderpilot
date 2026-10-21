@@ -36,12 +36,22 @@ export default async function SettingsPage({ params }: { params: Promise<{ orgSl
         title="Settings"
         description="Workspace details and order rules."
         actions={
-          <Link
-            href={`/o/${orgSlug}/settings/members`}
-            className="text-small font-medium text-primary hover:underline"
-          >
-            Members and invitations
-          </Link>
+          <span className="flex flex-wrap gap-4">
+            <Link
+              href={`/o/${orgSlug}/settings/members`}
+              className="text-small font-medium text-primary hover:underline"
+            >
+              Members and invitations
+            </Link>
+            {can(workspace.role, "import.run") ? (
+              <Link
+                href={`/o/${orgSlug}/settings/import`}
+                className="text-small font-medium text-primary hover:underline"
+              >
+                Import from CSV
+              </Link>
+            ) : null}
+          </span>
         }
       />
       <Card>

@@ -2,7 +2,7 @@ import { join } from "node:path";
 
 import { expect, type Page } from "@playwright/test";
 
-import { formAlert, signIn, test, USERS } from "./app/support";
+import { formAlert, localSql, signIn, test, USERS } from "./app/support";
 
 const DOCS = join(__dirname, "../fixtures/documents");
 const NS = "/o/northstar";
@@ -38,6 +38,22 @@ test.describe("intake and review (Phases 4A and 4B)", () => {
     await expect(page.getByTestId("line-1-product")).toContainText("JAN-1001");
     await expect(page.getByTestId("line-2-product")).toContainText("JAN-2207");
     await expect(page.locator("iframe[title^='Original document']")).toBeVisible();
+
+    // FR-AUD-07: downloading the original is recorded.
+    const intakeId = page.url().split("/").pop()!;
+    const doc = localSql(
+      `select source_document_id from public.inbound_orders where id = '${intakeId}'`,
+    );
+    const download = page.waitForEvent("download");
+    await page.getByRole("link", { name: "Download" }).click();
+    expect((await download).suggestedFilename()).toBe("01-harbor-pine-clean.pdf");
+    await expect
+      .poll(() =>
+        localSql(
+          `select count(*) from public.audit_events where action = 'source_document.downloaded' and entity_id = '${doc}'`,
+        ),
+      )
+      .toBe("1");
 
     await page.getByRole("button", { name: /Confirm all above/ }).click();
     await expect(page.getByTestId("save-status")).toHaveText("All changes saved", {

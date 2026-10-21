@@ -30,6 +30,9 @@ export async function GET(
     .download(doc.storage_path);
   if (file.error || !file.data) return new NextResponse("Not found", { status: 404 });
   const download = request.nextUrl.searchParams.get("download") === "1";
+  // FR-AUD-07: downloads are recorded in the audit trail (views in the review
+  // screen are not, to keep the history readable).
+  if (download) await supabase.rpc("record_document_download", { p_document_id: documentId });
   const safeName = doc.original_filename.replace(/[^\w.\- ]/g, "_");
   return new NextResponse(file.data.stream(), {
     headers: {
