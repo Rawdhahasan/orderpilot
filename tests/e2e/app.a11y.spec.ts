@@ -18,10 +18,35 @@ async function seriousViolations(page: Page) {
     );
 }
 
+const consoleErrors = new WeakMap<Page, string[]>();
+
+/** Records browser errors and failed requests for a page (hydration and runtime bugs). */
+function watch(page: Page) {
+  if (consoleErrors.has(page)) return;
+  const errors: string[] = [];
+  consoleErrors.set(page, errors);
+  // Failed requests are reported with their URL by the response listener.
+  page.on(
+    "console",
+    (m) =>
+      m.type() === "error" &&
+      !m.text().startsWith("Failed to load resource") &&
+      errors.push(`${page.url()}: ${m.text()}`),
+  );
+  page.on("pageerror", (e) => errors.push(`${page.url()}: ${e.message}`));
+  page.on("response", (r) => {
+    // Orders built directly in the database for these checks have no stored file.
+    if (r.status() >= 400 && !r.url().includes("/api/documents/"))
+      errors.push(`${r.status()} ${r.url()}`);
+  });
+}
+
 async function check(page: Page, path: string) {
+  watch(page);
   await page.goto(path);
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   expect(await seriousViolations(page), path).toEqual([]);
+  expect(consoleErrors.get(page), path).toEqual([]);
 }
 
 test.describe("accessibility of the signed-in product (WCAG 2.2 AA, axe-core)", () => {

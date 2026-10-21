@@ -185,6 +185,8 @@ export function ReviewWorkspace(props: ReviewProps) {
   }>({ kind: "idle" });
   // Every edit bumps the revision; an effect saves shortly after the last one.
   const [revision, setRevision] = useState(0);
+  // The last revision the server has confirmed; anything newer is unsaved.
+  const [savedRevision, setSavedRevision] = useState(0);
   const revisionRef = useRef(0);
   const sentRevision = useRef(0);
   const saving = useRef(false);
@@ -252,6 +254,7 @@ export function ReviewWorkspace(props: ReviewProps) {
     saving.current = false;
     if (result.ok) {
       setVersion(result.version);
+      setSavedRevision(sentRevision.current);
       setStatus({ kind: "saved" });
       if (revisionRef.current !== sentRevision.current) void saveRef.current();
       else router.refresh();
@@ -275,6 +278,15 @@ export function ReviewWorkspace(props: ReviewProps) {
     return () => clearTimeout(id);
   }, [revision]);
   const changed = () => setRevision((r) => r + 1);
+
+  // Never lose edits silently: warn before leaving while changes are unsaved.
+  const unsaved = revision !== savedRevision;
+  useEffect(() => {
+    if (!unsaved) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [unsaved]);
 
   const t = props.confidenceThreshold;
   const stamp = { confirmed_by: props.currentUser, confirmed_at: new Date().toISOString() };
@@ -420,10 +432,12 @@ export function ReviewWorkspace(props: ReviewProps) {
         <span className="ml-auto text-subtle-foreground" data-testid="save-status">
           {status.kind === "saving" ? (
             "Saving…"
-          ) : status.kind === "saved" ? (
-            "All changes saved"
           ) : status.kind === "error" ? (
             <span className="text-danger-700">{status.message}</span>
+          ) : status.kind === "stale" ? null : unsaved ? (
+            "Unsaved changes"
+          ) : status.kind === "saved" ? (
+            "All changes saved"
           ) : null}
         </span>
       </div>
