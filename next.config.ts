@@ -18,15 +18,18 @@ export function pageExtensionsFor(phase: string): string[] {
     : [...BASE_PAGE_EXTENSIONS];
 }
 
-const securityHeaders = [
+const baseHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   },
 ];
+const securityHeaders = [...baseHeaders, { key: "X-Frame-Options", value: "DENY" }];
+// Original documents are shown inside the review screen, so only they may be
+// framed, and only by OrderPilot's own pages.
+const documentHeaders = [...baseHeaders, { key: "X-Frame-Options", value: "SAMEORIGIN" }];
 
 export default function config(phase: string): NextConfig {
   return {
@@ -39,7 +42,10 @@ export default function config(phase: string): NextConfig {
     // The project root is this folder, not the home directory above it.
     turbopack: { root: path.resolve(".") },
     async headers() {
-      return [{ source: "/:path*", headers: securityHeaders }];
+      return [
+        { source: "/((?!api/documents/).*)", headers: securityHeaders },
+        { source: "/api/documents/:path*", headers: documentHeaders },
+      ];
     },
   };
 }

@@ -2075,6 +2075,7 @@ export type Database = {
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
+      acknowledge_exception: { Args: { p_exception_id: string; p_note?: string }; Returns: Json };
       adjust_stock: {
         Args: {
           p_mode: string;
@@ -2094,6 +2095,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      assign_inbound_order: { Args: { p_inbound_order_id: string }; Returns: Json };
       cancel_inbound_order: {
         Args: {
           p_expected_version: number;
@@ -2153,6 +2155,15 @@ export type Database = {
         };
         Returns: string;
       };
+      create_pending_document: {
+        Args: {
+          p_filename: string;
+          p_mime_type: string;
+          p_organization_id: string;
+          p_size_bytes: number;
+        };
+        Returns: string;
+      };
       describe_invitation: {
         Args: { p_token: string };
         Returns: {
@@ -2162,6 +2173,14 @@ export type Database = {
           organization_slug: string;
           role: Database["public"]["Enums"]["member_role"];
           state: string;
+        }[];
+      };
+      expected_prices: {
+        Args: { p_inbound_order_id: string };
+        Returns: {
+          line_id: string;
+          source: Database["public"]["Enums"]["price_source"];
+          unit_price: number;
         }[];
       };
       extend_extraction_lease: {
@@ -2178,6 +2197,20 @@ export type Database = {
         };
         Returns: string;
       };
+      finalize_document: {
+        Args: {
+          p_customer_hint_id?: string;
+          p_document_id: string;
+          p_mime_type: string;
+          p_page_count: number;
+          p_provider?: string;
+          p_session_id: string;
+          p_sha256: string;
+          p_size_bytes: number;
+          p_user_id: string;
+        };
+        Returns: Json;
+      };
       find_similar_customers: {
         Args: { p_name: string; p_organization_id: string };
         Returns: {
@@ -2191,6 +2224,7 @@ export type Database = {
         Args: { p_expected_version: number; p_sales_order_id: string };
         Returns: Json;
       };
+      intake_duplicate_info: { Args: { p_inbound_order_id: string }; Returns: Json };
       invite_member: {
         Args: {
           p_email: string;
@@ -2200,13 +2234,39 @@ export type Database = {
         Returns: string;
       };
       issue_invitation_token: { Args: { p_invitation_id: string }; Returns: string };
+      match_customers: {
+        Args: { p_account?: string; p_name: string; p_organization_id: string };
+        Returns: {
+          customer_id: string;
+          method: string;
+          name: string;
+          score: number;
+          status: Database["public"]["Enums"]["customer_status"];
+        }[];
+      };
+      match_products: {
+        Args: { p_customer_id: string; p_lines: Json; p_organization_id: string };
+        Returns: {
+          line_key: string;
+          method: string;
+          name: string;
+          product_id: string;
+          score: number;
+          sku: string;
+        }[];
+      };
       override_exception: { Args: { p_exception_id: string; p_reason: string }; Returns: Json };
       receive_stock: {
         Args: { p_note?: string; p_product_id: string; p_quantity: number; p_reference?: string };
         Returns: Json;
       };
       record_mfa_reset: { Args: { p_reason: string; p_user_id: string }; Returns: number };
+      record_validation: {
+        Args: { p_exceptions: Json; p_inbound_order_id: string; p_version: number };
+        Returns: Json;
+      };
       recover_stale_extractions: { Args: Record<PropertyKey, never>; Returns: number };
+      reject_document: { Args: { p_document_id: string; p_reason: string }; Returns: undefined };
       reject_inbound_order: {
         Args: { p_expected_version: number; p_inbound_order_id: string; p_reason: string };
         Returns: Json;
@@ -2221,6 +2281,15 @@ export type Database = {
         Returns: string;
       };
       revoke_invitation: { Args: { p_invitation_id: string }; Returns: undefined };
+      save_inbound_order_draft: {
+        Args: {
+          p_expected_version: number;
+          p_header?: Json;
+          p_inbound_order_id: string;
+          p_lines?: Json;
+        };
+        Returns: Json;
+      };
       set_base_currency: {
         Args: { p_currency: string; p_organization_id: string };
         Returns: {

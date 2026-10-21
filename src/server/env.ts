@@ -13,6 +13,11 @@ const schema = z.object({
   APP_BASE_URL: z.url(),
   MAIL_TRANSPORT: z.enum(["mailpit"]).default("mailpit"),
   MAILPIT_URL: z.url().default("http://127.0.0.1:54324"),
+  /** Authenticates calls to the internal worker route. */
+  INTERNAL_JOB_SECRET: z.string().min(32),
+  EXTRACTION_PROVIDER: z.enum(["simulated"]).default("simulated"),
+  /** Fixture recognition by the simulated provider is limited to local and test (FR-EXT-03). */
+  DEPLOYMENT_ENV: z.enum(["local", "test", "staging", "production"]).default("production"),
 });
 
 export type ServerEnv = z.infer<typeof schema>;

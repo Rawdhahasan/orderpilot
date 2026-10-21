@@ -16,7 +16,13 @@ const MESSAGES: Record<string, string> = {
   invitation_email_mismatch:
     "This invitation was sent to a different email address. Sign in with that address to accept it.",
   membership_suspended: "Your access to this workspace is suspended. Ask a workspace Owner.",
-  rate_limited: "Too many invitations were sent recently. Try again later.",
+  rate_limited: "Too many requests in a short time. Wait a little and try again.",
+  stale_version: "Someone else changed this since you opened it. Reload to see the latest version.",
+  independent_approval_required: "You submitted this order, so another approver must approve it.",
+  already_approved: "This order was already approved.",
+  duplicate_po_number: "Another sales order already uses this PO number for this customer.",
+  insufficient_on_hand:
+    "There is not enough stock on hand to fulfil this order. Receive or adjust stock first.",
   not_found: "We couldn't find that. It may have been removed, or you may not have access.",
   insufficient_privilege: "You don't have permission to do that. Ask a workspace Owner.",
   invalid_state: "That change isn't possible right now. Refresh the page and try again.",

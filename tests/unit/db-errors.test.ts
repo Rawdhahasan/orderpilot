@@ -11,6 +11,18 @@ describe("messageForDbError", () => {
     );
   });
 
+  it("maps workflow errors", () => {
+    expect(messageForDbError({ code: "55000", message: "stale_version" })).toMatch(
+      /Someone else changed this/,
+    );
+    expect(messageForDbError({ code: "42501", message: "independent_approval_required" })).toMatch(
+      /another approver/,
+    );
+    expect(messageForDbError({ code: "55000", message: "insufficient_on_hand" })).toMatch(
+      /not enough stock/,
+    );
+  });
+
   it("shows validation details without SQL", () => {
     expect(
       messageForDbError({ code: "22023", message: "validation_failed: unknown time zone" }),

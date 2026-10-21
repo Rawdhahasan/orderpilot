@@ -10,8 +10,18 @@ import { NextResponse, type NextRequest } from "next/server";
  */
 const PROTECTED = ["/o/", "/workspaces", "/account"];
 
-function contentSecurityPolicy(nonce: string): string {
+function supabaseOrigin(): string {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").origin;
+  } catch {
+    return "";
+  }
+}
+
+function contentSecurityPolicy(nonce: string, path: string): string {
   const dev = process.env.NODE_ENV === "development";
+  // Original documents (PDF or image) may be framed by our own review screen only.
+  if (path.startsWith("/api/documents/")) return "frame-ancestors 'self'";
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ""}`,
@@ -19,10 +29,12 @@ function contentSecurityPolicy(nonce: string): string {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "font-src 'self'",
-    `connect-src 'self'${dev ? " ws:" : ""}`,
+    // Uploads go directly to private storage with signed URLs (TECHNICAL_ARCHITECTURE.md §8).
+    `connect-src 'self' ${supabaseOrigin()}${dev ? " ws:" : ""}`.trim(),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
+    "frame-src 'self'",
     "frame-ancestors 'none'",
   ].join("; ");
 }
@@ -30,7 +42,7 @@ function contentSecurityPolicy(nonce: string): string {
 export async function proxy(request: NextRequest) {
   const requestId = crypto.randomUUID();
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
-  const csp = contentSecurityPolicy(nonce);
+  const csp = contentSecurityPolicy(nonce, request.nextUrl.pathname);
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-request-id", requestId);

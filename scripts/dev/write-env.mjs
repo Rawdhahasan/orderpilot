@@ -1,5 +1,6 @@
 // Writes .env.local (git-ignored) for the local Supabase stack. Values are
 // never printed. Usage: corepack pnpm db:env
+import { randomBytes } from "node:crypto";
 import { writeFileSync } from "node:fs";
 
 import { localStatus } from "./local-supabase.mjs";
@@ -13,6 +14,9 @@ const lines = [
   "APP_BASE_URL=http://localhost:3000",
   "MAIL_TRANSPORT=mailpit",
   `MAILPIT_URL=${status.MAILPIT_URL ?? status.INBUCKET_URL ?? "http://127.0.0.1:54324"}`,
+  `INTERNAL_JOB_SECRET=${randomBytes(32).toString("hex")}`,
+  "EXTRACTION_PROVIDER=simulated",
+  "DEPLOYMENT_ENV=local",
   "",
 ];
 writeFileSync(new URL("../../.env.local", import.meta.url), lines.join("\n"), { mode: 0o600 });

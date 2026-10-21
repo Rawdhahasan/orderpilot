@@ -1,0 +1,664 @@
+{
+  "7dd7d89a42b7f380a89a94d0de7756ca38ffc9789a7f065172d55a181f38acbb": {
+    "file": "01-harbor-pine-clean.pdf",
+    "description": "Clean PO: known customer, aliases and SKUs, matching prices",
+    "failFirstAttempt": false,
+    "result": {
+      "schema": "extraction.v1",
+      "status": "complete",
+      "document": {
+        "pages": 1,
+        "warnings": []
+      },
+      "header": {
+        "customer_name": {
+          "raw": "Harbor & Pine Supply",
+          "value": "Harbor & Pine Supply",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "account_number": {
+          "raw": "C-1042",
+          "value": "C-1042",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "customer_po_number": {
+          "raw": "HP-55120",
+          "value": "HP-55120",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "po_date": {
+          "raw": "2026-10-12",
+          "value": "2026-10-12",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "currency": {
+          "raw": "USD",
+          "value": "USD",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "payment_terms": {
+          "raw": "Net 30",
+          "value": "Net 30",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "ship_to": {
+          "raw": "Harbor & Pine Supply, 77 Industrial Ct, Columbus, OH 43215",
+          "value": {
+            "name": "Harbor & Pine Supply",
+            "line1": "77 Industrial Ct",
+            "city": "Columbus",
+            "region": "OH",
+            "postal_code": "43215",
+            "country_code": "US"
+          },
+          "confidence": 0.93,
+          "page": 1
+        },
+        "document_total": {
+          "raw": "438.90",
+          "value": "438.90",
+          "confidence": 0.97,
+          "page": 1
+        }
+      },
+      "lines": [
+        {
+          "line_no": 1,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "HP-221",
+            "value": "HP-221",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "description": {
+            "raw": "Nitrile gloves medium 100ct",
+            "value": "Nitrile gloves medium 100ct",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "20",
+            "value": "20",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "uom": {
+            "raw": "BX",
+            "value": "BX",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "8.95",
+            "value": "8.95",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "179.00",
+            "value": "179.00",
+            "confidence": 0.95,
+            "page": 1
+          }
+        },
+        {
+          "line_no": 2,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "HP-510",
+            "value": "HP-510",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "description": {
+            "raw": "Multifold towel 16pk",
+            "value": "Multifold towel 16pk",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "4",
+            "value": "4",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "uom": {
+            "raw": "CS",
+            "value": "CS",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "43.10",
+            "value": "43.10",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "172.40",
+            "value": "172.40",
+            "confidence": 0.95,
+            "page": 1
+          }
+        },
+        {
+          "line_no": 3,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "JAN-4402",
+            "value": "JAN-4402",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "description": {
+            "raw": "Trash liners 40-45 gal",
+            "value": "Trash liners 40-45 gal",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "2",
+            "value": "2",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "uom": {
+            "raw": "CS",
+            "value": "CS",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "38.50",
+            "value": "38.50",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "77.00",
+            "value": "77.00",
+            "confidence": 0.95,
+            "page": 1
+          }
+        }
+      ]
+    }
+  },
+  "d7ad662bc7b9767f5ccc44f627ad62da68ec039d83da7f809eada68afc0c4174": {
+    "file": "02-northgate-messy.pdf",
+    "description": "Messy PO: unknown part, unit mismatch, price mismatch, missing ship-to, ambiguous date, low confidence",
+    "failFirstAttempt": false,
+    "result": {
+      "schema": "extraction.v1",
+      "status": "complete",
+      "document": {
+        "pages": 1,
+        "warnings": []
+      },
+      "header": {
+        "customer_name": {
+          "raw": "Northgate Facilities",
+          "value": "Northgate Facilities",
+          "confidence": 0.88,
+          "page": 1
+        },
+        "customer_po_number": {
+          "raw": "NG-7781",
+          "value": "NG-7781",
+          "confidence": 0.9,
+          "page": 1
+        },
+        "po_date": {
+          "raw": "04/05/2026",
+          "value": "04/05/2026",
+          "confidence": 0.62,
+          "page": 1,
+          "ambiguous": true
+        },
+        "currency": {
+          "raw": "USD",
+          "value": "USD",
+          "confidence": 0.8,
+          "page": 1
+        }
+      },
+      "lines": [
+        {
+          "line_no": 1,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "NG-0099",
+            "value": "NG-0099",
+            "confidence": 0.71,
+            "page": 1
+          },
+          "description": {
+            "raw": "Floor sealant 5 gal",
+            "value": "Floor sealant 5 gal",
+            "confidence": 0.71,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "3",
+            "value": "3",
+            "confidence": 0.71,
+            "page": 1
+          },
+          "uom": {
+            "raw": "EA",
+            "value": "EA",
+            "confidence": 0.71,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "61.00",
+            "value": "61.00",
+            "confidence": 0.71,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "183.00",
+            "value": "183.00",
+            "confidence": 0.71,
+            "page": 1
+          }
+        },
+        {
+          "line_no": 2,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "JAN-1001",
+            "value": "JAN-1001",
+            "confidence": 0.83,
+            "page": 1
+          },
+          "description": {
+            "raw": "Exam gloves M",
+            "value": "Exam gloves M",
+            "confidence": 0.83,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "2",
+            "value": "2",
+            "confidence": 0.83,
+            "page": 1
+          },
+          "uom": {
+            "raw": "CS",
+            "value": "CS",
+            "confidence": 0.83,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "8.95",
+            "value": "8.95",
+            "confidence": 0.83,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "17.90",
+            "value": "17.90",
+            "confidence": 0.83,
+            "page": 1
+          }
+        },
+        {
+          "line_no": 3,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "JAN-2207",
+            "value": "JAN-2207",
+            "confidence": 0.9,
+            "page": 1
+          },
+          "description": {
+            "raw": "Towels multifold",
+            "value": "Towels multifold",
+            "confidence": 0.9,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "10",
+            "value": "10",
+            "confidence": 0.9,
+            "page": 1
+          },
+          "uom": {
+            "raw": "CS",
+            "value": "CS",
+            "confidence": 0.9,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "39.00",
+            "value": "39.00",
+            "confidence": 0.9,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "390.00",
+            "value": "390.00",
+            "confidence": 0.9,
+            "page": 1
+          }
+        }
+      ]
+    }
+  },
+  "365fc6d5b3b5faafd02fc83828c42e49a1142f70b04d7c0e4d4a32a03bdf5a11": {
+    "file": "03-harbor-pine-two-pages.pdf",
+    "description": "Two-page PO with lines on both pages",
+    "failFirstAttempt": false,
+    "result": {
+      "schema": "extraction.v1",
+      "status": "complete",
+      "document": {
+        "pages": 2,
+        "warnings": []
+      },
+      "header": {
+        "customer_name": {
+          "raw": "Harbor & Pine Supply",
+          "value": "Harbor & Pine Supply",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "customer_po_number": {
+          "raw": "HP-55188",
+          "value": "HP-55188",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "po_date": {
+          "raw": "2026-10-15",
+          "value": "2026-10-15",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "currency": {
+          "raw": "USD",
+          "value": "USD",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "ship_to": {
+          "raw": "Harbor & Pine Supply, 77 Industrial Ct, Columbus, OH 43215",
+          "value": {
+            "name": "Harbor & Pine Supply",
+            "line1": "77 Industrial Ct",
+            "city": "Columbus",
+            "region": "OH",
+            "postal_code": "43215",
+            "country_code": "US"
+          },
+          "confidence": 0.93,
+          "page": 1
+        }
+      },
+      "lines": [
+        {
+          "line_no": 1,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "HP-221",
+            "value": "HP-221",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "description": {
+            "raw": "Nitrile gloves medium 100ct",
+            "value": "Nitrile gloves medium 100ct",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "10",
+            "value": "10",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "uom": {
+            "raw": "BX",
+            "value": "BX",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "8.95",
+            "value": "8.95",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "89.50",
+            "value": "89.50",
+            "confidence": 0.95,
+            "page": 1
+          }
+        },
+        {
+          "line_no": 2,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "JAN-2207",
+            "value": "JAN-2207",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "description": {
+            "raw": "Multifold towel 16pk",
+            "value": "Multifold towel 16pk",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "2",
+            "value": "2",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "uom": {
+            "raw": "CS",
+            "value": "CS",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "43.10",
+            "value": "43.10",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "86.20",
+            "value": "86.20",
+            "confidence": 0.95,
+            "page": 1
+          }
+        },
+        {
+          "line_no": 3,
+          "page": 2,
+          "customer_part_number": {
+            "raw": "JAN-4402",
+            "value": "JAN-4402",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "description": {
+            "raw": "Trash liners 40-45 gal",
+            "value": "Trash liners 40-45 gal",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "quantity": {
+            "raw": "1",
+            "value": "1",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "uom": {
+            "raw": "CS",
+            "value": "CS",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "unit_price": {
+            "raw": "38.50",
+            "value": "38.50",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "line_total": {
+            "raw": "38.50",
+            "value": "38.50",
+            "confidence": 0.95,
+            "page": 2
+          }
+        },
+        {
+          "line_no": 4,
+          "page": 2,
+          "customer_part_number": {
+            "raw": "FS-6300",
+            "value": "FS-6300",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "description": {
+            "raw": "Degreaser concentrate",
+            "value": "Degreaser concentrate",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "quantity": {
+            "raw": "2.5",
+            "value": "2.5",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "uom": {
+            "raw": "KG",
+            "value": "KG",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "unit_price": {
+            "raw": "6.20",
+            "value": "6.20",
+            "confidence": 0.95,
+            "page": 2
+          },
+          "line_total": {
+            "raw": "15.50",
+            "value": "15.50",
+            "confidence": 0.95,
+            "page": 2
+          }
+        }
+      ]
+    }
+  },
+  "374cbb0c6b2ede68108c4b57bc6c9a5451d2ba817b305269caa91fd4e61030a7": {
+    "file": "04-retry-once.pdf",
+    "description": "Fails on its first attempt (transient) and succeeds on retry (C-10)",
+    "failFirstAttempt": true,
+    "result": {
+      "schema": "extraction.v1",
+      "status": "complete",
+      "document": {
+        "pages": 1,
+        "warnings": []
+      },
+      "header": {
+        "customer_name": {
+          "raw": "Northgate Facilities",
+          "value": "Northgate Facilities",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "customer_po_number": {
+          "raw": "NG-7790",
+          "value": "NG-7790",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "po_date": {
+          "raw": "2026-10-14",
+          "value": "2026-10-14",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "currency": {
+          "raw": "USD",
+          "value": "USD",
+          "confidence": 0.97,
+          "page": 1
+        },
+        "ship_to": {
+          "raw": "Northgate Facilities, 400 Gateway Blvd, Dublin, OH 43017",
+          "value": {
+            "name": "Northgate Facilities",
+            "line1": "400 Gateway Blvd",
+            "city": "Dublin",
+            "region": "OH",
+            "postal_code": "43017",
+            "country_code": "US"
+          },
+          "confidence": 0.93,
+          "page": 1
+        }
+      },
+      "lines": [
+        {
+          "line_no": 1,
+          "page": 1,
+          "customer_part_number": {
+            "raw": "JAN-1001",
+            "value": "JAN-1001",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "description": {
+            "raw": "Exam gloves M",
+            "value": "Exam gloves M",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "quantity": {
+            "raw": "5",
+            "value": "5",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "uom": {
+            "raw": "BX",
+            "value": "BX",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "unit_price": {
+            "raw": "8.95",
+            "value": "8.95",
+            "confidence": 0.95,
+            "page": 1
+          },
+          "line_total": {
+            "raw": "44.75",
+            "value": "44.75",
+            "confidence": 0.95,
+            "page": 1
+          }
+        }
+      ]
+    }
+  }
+}

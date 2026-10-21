@@ -23,7 +23,7 @@
     "test:e2e:production": "playwright test --config playwright.production.config.ts",
     "test:e2e:app": "playwright test --config playwright.app.config.ts",
     "check": "eslint --max-warnings=0 . && tsc --noEmit && vitest run && NEXT_TELEMETRY_DISABLED=1 next build",
-    "db:start": "SUPABASE_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor",
+    "db:start": "SUPABASE_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 supabase start -x realtime,imgproxy,studio,edge-runtime,logflare,vector,supavisor",
     "db:stop": "SUPABASE_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 supabase stop",
     "db:status": "SUPABASE_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 supabase status",
     "db:reset": "node scripts/dev/assert-local-db.mjs && SUPABASE_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 supabase db reset --local",

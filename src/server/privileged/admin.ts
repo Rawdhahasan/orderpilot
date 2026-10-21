@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/server/db/database.types";
 import { serverEnv } from "@/server/env";
+import { freshFetch } from "@/server/supabase/server";
 
 /**
  * The only module allowed to use the secret (service-role) key
@@ -16,5 +17,6 @@ export function createAdminClient() {
   const env = serverEnv();
   return createClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SECRET_KEY, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: freshFetch },
   });
 }
