@@ -28,7 +28,8 @@ export default defineConfig({
   webServer: {
     command: `NEXT_TELEMETRY_DISABLED=1 next build && NEXT_TELEMETRY_DISABLED=1 next start --port ${PORT}`,
     url: `http://localhost:${PORT}/sign-in`,
-    env: { APP_BASE_URL: `http://localhost:${PORT}` },
+    // Tests never call a real AI provider, whatever .env.local selects.
+    env: { APP_BASE_URL: `http://localhost:${PORT}`, AI_EXTRACTION_PROVIDER: "simulated" },
     reuseExistingServer: false,
     timeout: 300_000,
   },

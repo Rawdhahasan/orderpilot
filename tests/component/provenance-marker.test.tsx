@@ -37,6 +37,13 @@ describe("provenance markers (DESIGN_SYSTEM.md §9.6)", () => {
     ).toBeVisible();
   });
 
+  it("shows no percentage when the model gives no calibrated confidence (real AI)", () => {
+    renderMarker({ state: "suggested_low", page: 2 });
+    expect(
+      screen.getByRole("button", { name: /^Check\b(?!.*%).*page 2.*against the document/ }),
+    ).toBeVisible();
+  });
+
   it("lists alternatives for ambiguous values", () => {
     renderMarker({ state: "ambiguous", alternatives: ["Nov 4", "Apr 11"] });
     expect(screen.getByText(/Ambiguous: Nov 4 or Apr 11/)).toBeVisible();

@@ -60,6 +60,9 @@ known limitation), **Open** (not yet addressed; owner phase noted).
 | Control | Status | Evidence |
 |---|---|---|
 | Secrets never in the repository or logs | Met | `.env.local` git-ignored; env errors print names only; commits scanned |
+| AI provider key server-side only | Met | `GEMINI_API_KEY` read only by the worker (`server-only`); sent in a request header, never logged or shown; `ai:check` prints only its length |
+| Document content sent to an AI provider | Partly | Gemini free tier may use content to improve Google products: fictional documents only until a paid tier with data terms (D-07) |
+| AI output treated as untrusted | Met | Strict schema and Zod; document text is data, not instructions; values are suggestions until confirmed; the hard gate refuses unconfirmed values; unit and integration tests with a mocked API |
 | Sensitive responses not cached | Met | `no-store` on documents and exports |
 | Original documents immutable and private | Met | Private bucket, no update/delete policies, immutable stored rows |
 | Backups and retention | Open | Phase 7 (R-08, D-22) |

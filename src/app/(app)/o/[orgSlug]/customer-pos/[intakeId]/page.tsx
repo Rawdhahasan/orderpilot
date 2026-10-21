@@ -60,6 +60,8 @@ export default async function IntakePage({
   } | null;
   const customer = intake.customer as { name: string } | null;
   const simulated = snapshot.run?.provider === "simulated";
+  const aiModel =
+    snapshot.run?.provider === "gemini" ? (snapshot.run.provider_version ?? "Gemini") : null;
   const exceptions = toPanel(snapshot);
   const openBlocking = exceptions.filter((e) => e.status === "open" && e.severity === "blocking");
   const editable = canReview && intake.status === "in_review";
@@ -141,6 +143,16 @@ export default async function IntakePage({
           Simulated extraction (demo). Values come from a prepared fixture, not from AI.
         </p>
       ) : null}
+      {aiModel && !intake.manual_entry && intake.status !== "extracting" ? (
+        <p
+          className="inline-flex items-center gap-1.5 rounded-md bg-ai-50 px-3 py-1.5 text-small font-medium text-ai-800"
+          data-testid="ai-label"
+        >
+          <Sparkles aria-hidden className="size-4" />
+          Suggested by Google Gemini ({aiModel}). AI can misread documents: check every value
+          against the document before confirming.
+        </p>
+      ) : null}
       {intake.manual_entry && intake.status === "in_review" ? (
         <p role="status" className="rounded-md bg-blue-50 px-3 py-2 text-small text-blue-700">
           No values were extracted from this document. Enter the order from the document; nothing
@@ -152,7 +164,11 @@ export default async function IntakePage({
         <Card>
           <CardContent className="pt-5 text-body">
             <ExtractionPoller intakeId={intakeId} />
-            <p className="font-medium text-navy-900">Reading the document…</p>
+            <p className="font-medium text-navy-900">
+              {snapshot.run?.provider === "gemini"
+                ? "Extracting information with Gemini…"
+                : "Reading the document…"}
+            </p>
             <p className="text-small text-subtle-foreground">
               Attempt {snapshot.run?.attempt ?? 1} of {snapshot.run?.max_attempts ?? 3}. This page
               updates by itself.

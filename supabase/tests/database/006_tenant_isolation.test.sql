@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(132);
+select plan(137);
 
 -- Fixtures set statuses directly, as the workflow functions do (Phase 2D guard).
 select set_config('orderpilot.transition', 'on', true);
@@ -132,6 +132,11 @@ select pg_temp.populate('00000000-0000-4000-a000-000000000001', '00000000-0000-4
 select pg_temp.populate('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-b200-000000000001',
   '00000000-0000-4000-b400-000000000001', '00000000-0000-4000-b500-000000000001', 'IN-920001', 'BV-2026-920001', 'GBP');
 
+-- AI usage rows in both workspaces (no document content).
+insert into public.ai_usage_events (organization_id, provider, model) values
+  ('00000000-0000-4000-a000-000000000001', 'gemini', 'test-model'),
+  ('00000000-0000-4000-b000-000000000001', 'gemini', 'test-model');
+
 -- A signed-in user who belongs to no workspace.
 insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-4000-c000-0000000000ff', 'outsider@test.example', '{"full_name": "Outsider"}');
 
@@ -147,7 +152,8 @@ insert into tenant_tables values
   ('inbound_order_lines', 'organization_id', true), ('extraction_runs', 'organization_id', true),
   ('order_exceptions', 'organization_id', true), ('sales_orders', 'organization_id', true),
   ('sales_order_lines', 'organization_id', true), ('integration_outbox', 'organization_id', false),
-  ('audit_events', 'organization_id', true), ('stock_levels', 'organization_id', true);
+  ('audit_events', 'organization_id', true), ('stock_levels', 'organization_id', true),
+  ('ai_usage_events', 'organization_id', true);
 
 -- The fixture really covers every tenant table (otherwise isolation is not proven).
 select is(
@@ -198,7 +204,7 @@ select ok(
 -- 21 tables × Northstar Viewer: own records readable, audit log and invitations are not.
 select is(
   pg_temp.visible('00000000-0000-4000-a500-000000000006', name, org_column, '00000000-0000-4000-a000-000000000001') > 0,
-  member_visible and name not in ('audit_events', 'organization_invitations'),
+  member_visible and name not in ('audit_events', 'organization_invitations', 'ai_usage_events'),
   name || ': Northstar Viewer visibility'
 ) from tenant_tables order by name;
 

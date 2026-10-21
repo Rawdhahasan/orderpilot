@@ -86,7 +86,9 @@ test.describe("intake and review (Phases 4A and 4B)", () => {
       await expect(open.locator(`[data-exception-code="${code}"]`).first()).toBeVisible();
     }
     // Low-confidence and ambiguous values are not bulk-confirmed (D-06).
-    await expect(page.getByText(/low-confidence or ambiguous: confirm individually/)).toBeVisible();
+    await expect(
+      page.getByText(/uncertain, ambiguous or below \d+%: confirm individually/),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: "Submit for approval" })).toBeDisabled();
 
     // Resolve the price on line 3 by decision; the exception closes.
@@ -204,13 +206,18 @@ test.describe("intake and review (Phases 4A and 4B)", () => {
         .replace(/^https?:\/\/[^/]+/, ""),
     );
     // The same letter was uploaded earlier in this run: the approver reviews the duplicate and overrides it.
-    for (const override of await approver.getByRole("button", { name: "Override" }).all()) {
-      await override.click();
+    await expect(approver.getByRole("heading", { level: 1 })).toContainText("Approve");
+    await expect(approver.getByTestId("open-exceptions")).toBeVisible();
+    while ((await approver.getByRole("button", { name: "Override" }).count()) > 0) {
+      const before = await approver.locator('[data-exception-status="overridden"]').count();
+      await approver.getByRole("button", { name: "Override" }).first().click();
       await approver
         .getByLabel("Reason for the override")
         .fill("Same template letter, different order");
       await approver.getByRole("button", { name: "Record override" }).click();
-      await expect(approver.locator('[data-exception-status="overridden"]').first()).toBeAttached();
+      await expect(approver.locator('[data-exception-status="overridden"]')).toHaveCount(
+        before + 1,
+      );
     }
     await approver.reload();
     await approver.getByRole("button", { name: "Approve", exact: true }).click();

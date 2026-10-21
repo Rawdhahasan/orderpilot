@@ -59,7 +59,10 @@ export function provenanceText(p: Provenance): { label: string; detail: string }
     case "suggested_low":
       return {
         label: `Check${percent(p.confidence)}`,
-        detail: `${page}Low confidence: confirm this value individually.`,
+        detail:
+          p.confidence === undefined
+            ? `${page}Check this value against the document and confirm it individually.`
+            : `${page}Low confidence: confirm this value individually.`,
       };
     case "ambiguous":
       return {

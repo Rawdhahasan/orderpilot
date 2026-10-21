@@ -120,7 +120,7 @@ export async function finalizeUpload(input: {
     p_page_count: verification.pageCount,
     p_mime_type: verification.mimeType,
     p_customer_hint_id: parsed.data.customerHintId ?? undefined,
-    p_provider: serverEnv().EXTRACTION_PROVIDER,
+    p_provider: serverEnv().AI_EXTRACTION_PROVIDER,
   });
   if (error || !data) return { ok: false, message: messageForDbError(error) };
   const result = data as { inbound_order_id: string; reference: string; duplicate_of: unknown[] };

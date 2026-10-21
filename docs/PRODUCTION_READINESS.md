@@ -53,26 +53,24 @@ The demo workspace (UF-13) is created the same way with `p_is_demo => true`.
 | Product | Manual screen-reader passes (VoiceOver, NVDA) | **Needed** |
 | Product | Usability sessions with real order processors | **Needed** |
 | Legal | Terms, privacy policy, data processing agreement (M-11) | **Needed** |
-| AI | Real extraction provider (§4) | **Needed for the AI value proposition** |
+| AI | Real extraction provider: Google Gemini, free tier, behind limits (§4) | Built; **accuracy on real documents not yet evaluated** |
 
-## 4. Real AI extraction: integration plan
+## 4. Real AI extraction (Google Gemini)
 
-The workflow already treats extraction as untrusted suggestions, so a real
-provider changes one module.
+Built and tested with a mocked Gemini API; not yet evaluated on real documents.
 
-- **Where it plugs in:** implement `ExtractionProvider` (`src/server/extraction/provider.ts`) and add a case to `activeProvider()` in `worker.ts`, selected by `EXTRACTION_PROVIDER`.
-- **Input:** the stored document bytes, MIME type and page count; optionally the workspace locale and customer hint. Sending customer names or the catalogue to the provider is a data-sharing decision.
-- **Output contract:** the provider must return `extraction.v1` (`contract.ts`): raw text per field with confidence and page. The response is validated with Zod; anything that does not parse becomes a transient or permanent failure, never a guess.
-- **Our parsing stays authoritative:** dates and numbers are re-parsed by `normalize.ts` with the customer's date order; ambiguity is detected by our code.
-- **Reliability:** provider timeout shorter than the 120-second lease; rate limits and 5xx as transient failures (retried with backoff); unreadable documents as permanent; idempotent completion is already enforced by claim tokens.
-- **Safety:** values are always suggestions until a person confirms them; the hard gate refuses unconfirmed AI values; the "Simulated extraction" label is replaced by a provider label.
-- **Before choosing a provider:** an evaluation harness on anonymised real POs (with customer permission) comparing field and line accuracy, cost per page, latency, data retention and processing region (TECHNICAL_ARCHITECTURE.md §9.4). A candidate such as an Anthropic Claude model would read the PDF directly and return JSON matching `extraction.v1`.
-- **Configuration:** the API key lives only in a server-side environment variable; no key is needed or stored today.
+- **Provider:** `src/server/extraction/gemini.ts`, official `@google/genai` SDK, server-side only, selected by `AI_EXTRACTION_PROVIDER=gemini`. Default model `gemini-3.8-flash` (free tier, PDFs and images, structured output). Each job keeps the provider it was queued with; there is never an automatic switch to another or a paid provider.
+- **Input:** the stored document bytes (inline), MIME type and page count only. No customer list, catalogue or prices are sent.
+- **Output:** strict JSON schema (temperature 0): printed text per field with page and the model's own "uncertain" flag; null when absent. Validated with Zod, then mapped to `extraction.v1`. Model confidence is **not** used as a calibrated probability: Gemini values are never bulk-confirmable and show as "Check" until a person confirms each one.
+- **Our parsing stays authoritative:** `normalize.ts` parses dates and numbers; product matching, prices, totals checks, duplicates, approval and stock are unchanged and never done by the AI.
+- **Free-tier safety:** `reserve_ai_call` checks per-minute, per-day and per-workspace-per-day limits atomically before every call; page and size limits; one call per attempt (no SDK retries), retried by the queue with backoff for 429 per-minute, 5xx, timeouts and invalid answers; a daily quota (Google's or ours) fails at once with a clear message and manual entry. Usage is logged without content (`ai_usage_events`, Settings → AI usage).
+- **Data:** on the free tier Google may use submitted content to improve its products. Use fictional documents only until a paid tier with data terms is approved (D-07).
+- **Before real customers:** an evaluation on permitted real POs (field and line accuracy, latency, cost), a paid tier or enterprise terms with no training on data, and a processing region decision.
 
 ## 5. Launch blockers (decisions or work outside this codebase)
 
 1. Accounts, region and plans for hosting, database and email (D-23, D-25, D-26).
-2. Real extraction provider, with an evaluation and data terms (D-07).
+2. AI extraction: accuracy evaluation on permitted real documents and data terms for a paid tier (D-07); the free tier is for fictional documents only.
 3. Backups, retention and recovery targets (R-08, D-22).
 4. Malware scanning, per-account throttling, error monitoring (D-30).
 5. Independent penetration test; legal documents (M-11).

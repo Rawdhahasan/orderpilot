@@ -99,6 +99,7 @@ test.describe("accessibility of the signed-in product (WCAG 2.2 AA, axe-core)", 
       "/o/northstar/audit",
       "/o/northstar/settings",
       "/o/northstar/settings/members",
+      "/o/northstar/settings/ai-usage",
       "/account",
       "/account/security",
     ];

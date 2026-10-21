@@ -47,10 +47,12 @@ export function normalizeResult(
 
 export function overallConfidence(result: ExtractionResult): number | null {
   const values: number[] = [];
-  for (const field of Object.values(result.header)) if (field) values.push(field.confidence);
+  // Only calibrated confidences count; providers without them report none.
+  for (const field of Object.values(result.header))
+    if (typeof field?.confidence === "number") values.push(field.confidence);
   for (const line of result.lines) {
     for (const field of [line.customer_part_number, line.quantity, line.unit_price])
-      if (field) values.push(field.confidence);
+      if (typeof field?.confidence === "number") values.push(field.confidence);
   }
   if (values.length === 0) return null;
   return Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 1000) / 1000;

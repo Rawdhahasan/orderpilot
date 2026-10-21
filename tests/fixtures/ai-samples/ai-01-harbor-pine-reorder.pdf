@@ -1,0 +1,48 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Length 1288 >>
+stream
+BT /F1 10 Tf 50 770 Td (Harbor & Pine Supply \(fictional\)) Tj ET
+BT /F1 10 Tf 50 756 Td (418 Wharf Street, Portsmouth, NH 03801) Tj ET
+BT /F1 10 Tf 50 742 Td () Tj ET
+BT /F1 10 Tf 50 728 Td (                                   PURCHASE ORDER) Tj ET
+BT /F1 10 Tf 50 714 Td (Order No.: HP-55120            Order date: October 14, 2026) Tj ET
+BT /F1 10 Tf 50 700 Td (Vendor: Northstar Distribution LLC \(fictional\)) Tj ET
+BT /F1 10 Tf 50 686 Td (Customer account: C-1042) Tj ET
+BT /F1 10 Tf 50 672 Td (Deliver by: October 28, 2026) Tj ET
+BT /F1 10 Tf 50 658 Td (Ship to: Harbor & Pine Supply, Dock 2, 420 Wharf Street, Portsmouth, NH 03801) Tj ET
+BT /F1 10 Tf 50 644 Td (Terms: Net 30          Currency: USD) Tj ET
+BT /F1 10 Tf 50 630 Td () Tj ET
+BT /F1 10 Tf 50 616 Td (Item     Our part   Description                     Qty    Unit   Price     Amount) Tj ET
+BT /F1 10 Tf 50 602 Td (1        HP-221     Nitrile gloves medium 100ct     40     BX     8.95      358.00) Tj ET
+BT /F1 10 Tf 50 588 Td (2        HP-510     Multifold towel 16pk            12     CS     44.20     530.40) Tj ET
+BT /F1 10 Tf 50 574 Td () Tj ET
+BT /F1 10 Tf 50 560 Td (                                               Order total:  USD 888.40) Tj ET
+BT /F1 10 Tf 50 546 Td (Buyer: Dana Whitfield \(fictional\)) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000185 00000 n 
+0000001525 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1651
+%%EOF

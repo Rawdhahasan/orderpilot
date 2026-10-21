@@ -16,7 +16,7 @@ select tables_are(
     'products', 'customer_item_aliases', 'customer_prices', 'locations',
     'inventory_balances', 'inventory_movements', 'source_documents', 'inbound_orders',
     'inbound_order_lines', 'extraction_runs', 'order_exceptions', 'sales_orders',
-    'sales_order_lines', 'integration_outbox', 'audit_events'
+    'sales_order_lines', 'integration_outbox', 'audit_events', 'ai_usage_events'
   ],
   'public schema contains exactly the expected tables'
 );
@@ -104,15 +104,16 @@ select is(
         'assign_inbound_order', 'cancel_inbound_order', 'cancel_sales_order', 'change_member_role',
         'claim_extraction_job', 'complete_extraction', 'create_organization', 'create_pending_document',
         'dashboard_summary', 'describe_invitation', 'entity_timeline', 'expected_prices',
-        'extend_extraction_lease', 'fail_extraction', 'finalize_document', 'fulfill_sales_order',
-        'import_customers', 'import_opening_stock', 'import_products', 'intake_duplicate_info',
-        'invite_member', 'issue_invitation_token', 'mark_backorder_handled', 'override_exception',
-        'receive_stock', 'record_document_download', 'record_mfa_reset', 'record_validation',
-        'recover_stale_extractions', 'reject_document', 'reject_inbound_order', 'remove_member',
-        'request_changes', 'reset_demo_workspace', 'retry_extraction', 'revoke_invitation',
-        'save_inbound_order_draft', 'set_base_currency', 'set_customer_status', 'set_member_status',
-        'set_product_price', 'set_product_tracking', 'start_extraction', 'submit_inbound_order',
-        'switch_to_manual_entry', 'update_workspace_settings', 'withdraw_inbound_order'],
+        'extend_extraction_lease', 'fail_extraction', 'finalize_document', 'finish_ai_call',
+        'fulfill_sales_order', 'import_customers', 'import_opening_stock', 'import_products',
+        'intake_duplicate_info', 'invite_member', 'issue_invitation_token', 'mark_backorder_handled',
+        'override_exception', 'receive_stock', 'record_document_download', 'record_mfa_reset',
+        'record_validation', 'recover_stale_extractions', 'reject_document', 'reject_inbound_order',
+        'remove_member', 'request_changes', 'reserve_ai_call', 'reset_demo_workspace', 'retry_extraction',
+        'revoke_invitation', 'save_inbound_order_draft', 'set_base_currency', 'set_customer_status',
+        'set_member_status', 'set_product_price', 'set_product_tracking', 'start_extraction',
+        'submit_inbound_order', 'switch_to_manual_entry', 'update_workspace_settings',
+        'withdraw_inbound_order'],
   'only reviewed role-checked functions are SECURITY DEFINER in public'
 );
 select is(
@@ -168,7 +169,7 @@ select is(
      from information_schema.role_table_grants
     where grantee = 'authenticated' and table_schema = 'public'),
   array[
-    'audit_events:SELECT', 'currencies:SELECT', 'customer_addresses:SELECT', 'customer_item_aliases:SELECT',
+    'ai_usage_events:SELECT', 'audit_events:SELECT', 'currencies:SELECT', 'customer_addresses:SELECT', 'customer_item_aliases:SELECT',
     'customer_prices:DELETE', 'customer_prices:SELECT', 'customers:SELECT', 'extraction_runs:SELECT',
     'inbound_order_lines:SELECT', 'inbound_orders:SELECT', 'inventory_balances:SELECT',
     'inventory_movements:SELECT', 'locations:SELECT', 'order_exceptions:SELECT',

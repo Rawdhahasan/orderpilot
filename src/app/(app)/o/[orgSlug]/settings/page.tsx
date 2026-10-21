@@ -51,6 +51,12 @@ export default async function SettingsPage({ params }: { params: Promise<{ orgSl
                 Import from CSV
               </Link>
             ) : null}
+            <Link
+              href={`/o/${orgSlug}/settings/ai-usage`}
+              className="text-small font-medium text-primary hover:underline"
+            >
+              AI usage
+            </Link>
           </span>
         }
       />

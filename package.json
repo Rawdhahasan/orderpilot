@@ -33,9 +33,11 @@
     "db:provision": "node scripts/dev/provision-users.mjs",
     "ops:reset-mfa": "node scripts/ops/reset-mfa.mjs",
     "ops:reset-demo": "node scripts/ops/reset-demo.mjs",
-    "perf:check": "node scripts/dev/perf-check.mjs"
+    "perf:check": "node scripts/dev/perf-check.mjs",
+    "ai:check": "node scripts/dev/ai-check.mjs"
   },
   "dependencies": {
+    "@google/genai": "2.27.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.3",
     "@tanstack/react-table": "8.21.3",

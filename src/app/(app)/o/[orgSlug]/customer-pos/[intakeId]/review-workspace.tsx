@@ -21,6 +21,7 @@ type Meta = Record<string, unknown> & {
   source?: string;
   state?: string;
   confidence?: number;
+  uncertain?: boolean;
   ambiguous?: boolean;
   price_decision?: string;
 };
@@ -120,7 +121,11 @@ function provenanceOf(
   if (meta.source === "user") return { state: "user_entered" };
   if (meta.state === "suggested") {
     if (meta.ambiguous) return { state: "ambiguous", ...common, alternatives: [] };
-    return { state: (meta.confidence ?? 1) < threshold ? "suggested_low" : "suggested", ...common };
+    // Values without a calibrated confidence (real AI models) or flagged as
+    // uncertain by the model always need a closer look.
+    const low =
+      meta.uncertain || typeof meta.confidence !== "number" || meta.confidence < threshold;
+    return { state: low ? "suggested_low" : "suggested", ...common };
   }
   return null;
 }
@@ -426,7 +431,7 @@ export function ReviewWorkspace(props: ReviewProps) {
         ) : null}
         {lowCount > 0 ? (
           <span className="text-warning-800">
-            {lowCount} low-confidence or ambiguous: confirm individually
+            {lowCount} uncertain, ambiguous or below {Math.round(t * 100)}%: confirm individually
           </span>
         ) : null}
         <span className="ml-auto text-subtle-foreground" data-testid="save-status">

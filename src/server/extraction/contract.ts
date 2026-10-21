@@ -8,9 +8,12 @@ const field = <T extends z.ZodType>(value: T) =>
   z.object({
     raw: z.string().max(2000),
     value: value.nullable(),
-    confidence: z.number().min(0).max(1),
+    /** Calibrated confidence (0–1). Absent for providers whose confidence is not calibrated. */
+    confidence: z.number().min(0).max(1).optional(),
     page: z.number().int().min(1).max(50).optional(),
     ambiguous: z.boolean().optional(),
+    /** The provider flagged the value as unclear or conflicting. */
+    uncertain: z.boolean().optional(),
   });
 
 export const addressSchema = z.object({

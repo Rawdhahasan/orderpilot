@@ -242,7 +242,9 @@ Every privileged action writes an audit event with `actor_type = 'system'` and, 
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (anon key) | Public; safe only because RLS is enforced |
 | `SUPABASE_SECRET_KEY` (service role) | Server only, privileged modules only |
 | `INTERNAL_JOB_SECRET` | Server only; authenticates internal worker calls |
-| `EXTRACTION_PROVIDER` | Server only; `simulated` in MVP |
+| `AI_EXTRACTION_PROVIDER` | Server only; `simulated` (default) or `gemini` |
+| `GEMINI_API_KEY` | Server only; read only by the extraction worker; never logged |
+| `GEMINI_MODEL`, `AI_MAX_*`, `AI_REQUEST_TIMEOUT_MS` | Server only; model and free-tier limits |
 | `APP_BASE_URL` | Server only |
 | `SENTRY_DSN` | If approved |
 

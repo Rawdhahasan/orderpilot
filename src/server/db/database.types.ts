@@ -3,6 +3,76 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      ai_usage_events: {
+        Row: {
+          bytes: number | null;
+          created_at: string;
+          duration_ms: number | null;
+          error_code: string | null;
+          extraction_run_id: string | null;
+          finished_at: string | null;
+          id: number;
+          model: string;
+          organization_id: string;
+          outcome: string;
+          output_tokens: number | null;
+          pages: number | null;
+          prompt_tokens: number | null;
+          provider: string;
+          total_tokens: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bytes?: number | null;
+          created_at?: string;
+          duration_ms?: number | null;
+          error_code?: string | null;
+          extraction_run_id?: string | null;
+          finished_at?: string | null;
+          id?: never;
+          model: string;
+          organization_id: string;
+          outcome?: string;
+          output_tokens?: number | null;
+          pages?: number | null;
+          prompt_tokens?: number | null;
+          provider: string;
+          total_tokens?: number | null;
+        };
+        Update: {
+          bytes?: number | null;
+          created_at?: string;
+          duration_ms?: number | null;
+          error_code?: string | null;
+          extraction_run_id?: string | null;
+          finished_at?: string | null;
+          id?: never;
+          model?: string;
+          organization_id?: string;
+          outcome?: string;
+          output_tokens?: number | null;
+          pages?: number | null;
+          prompt_tokens?: number | null;
+          provider?: string;
+          total_tokens?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_events_organization_id_extraction_run_id_fkey";
+            columns: ["organization_id", "extraction_run_id"];
+            isOneToOne: false;
+            referencedRelation: "extraction_runs";
+            referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "ai_usage_events_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       audit_events: {
         Row: {
           action: string;
@@ -2251,6 +2321,18 @@ export type Database = {
           status: Database["public"]["Enums"]["customer_status"];
         }[];
       };
+      finish_ai_call: {
+        Args: {
+          p_duration_ms?: number;
+          p_error_code?: string;
+          p_id: number;
+          p_outcome: string;
+          p_output_tokens?: number;
+          p_prompt_tokens?: number;
+          p_total_tokens?: number;
+        };
+        Returns: undefined;
+      };
       fulfill_sales_order: {
         Args: { p_expected_version: number; p_sales_order_id: string };
         Returns: Json;
@@ -2322,6 +2404,20 @@ export type Database = {
       remove_member: { Args: { p_member_id: string }; Returns: undefined };
       request_changes: {
         Args: { p_expected_version: number; p_inbound_order_id: string; p_reason: string };
+        Returns: Json;
+      };
+      reserve_ai_call: {
+        Args: {
+          p_bytes: number;
+          p_extraction_run_id: string;
+          p_model: string;
+          p_organization_id: string;
+          p_pages: number;
+          p_per_day: number;
+          p_per_minute: number;
+          p_per_workspace_day: number;
+          p_provider: string;
+        };
         Returns: Json;
       };
       reset_demo_workspace: { Args: { p_organization_id: string }; Returns: string };

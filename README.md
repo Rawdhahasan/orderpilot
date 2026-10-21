@@ -6,8 +6,9 @@ Every customer PO is checked and approved before it becomes an order.
 **Status: MVP built locally (Phases 1 to 6).** Upload a customer PO, review the extracted
 draft with provenance, resolve exceptions, approve into a sales order that reserves stock,
 fulfil or cancel it, and follow everything in the audit trail. Extraction is **simulated**
-(fictional fixture documents only); there is no deployment and no real AI provider yet
-(Phase 7). The planning documents are in [docs/](docs/).
+by default (fictional fixture documents only); real extraction with **Google Gemini** (free
+tier) can be switched on locally, see [Real AI extraction](#real-ai-extraction-google-gemini).
+There is no deployment. The planning documents are in [docs/](docs/).
 
 ## Run the MVP locally
 
@@ -43,12 +44,44 @@ extraction (`04`), and an unknown document that opens in manual entry (`90`). Em
 **Reset the demo workspace** between demonstrations: `corepack pnpm ops:reset-demo northstar`
 (archives the current workspace and creates a fresh copy; nothing is deleted).
 
+## Real AI extraction (Google Gemini)
+
+Off by default. When it is on, uploaded documents are read by Google Gemini on the server;
+every value is still a suggestion that a person checks and confirms, and the AI never picks
+products, sets prices, approves orders or changes stock.
+
+**Use fictional documents only.** On the free tier, Google may use what you send to improve
+its products. Samples are in `tests/fixtures/ai-samples/` (regenerate with
+`node scripts/dev/make-ai-samples.mjs`).
+
+1. Create a free API key at **https://aistudio.google.com/apikey** (sign in with a Google
+   account; do not enable billing).
+2. Open `.env.local` in your editor (not in a chat or terminal history) and add:
+
+   ```sh
+   AI_EXTRACTION_PROVIDER=gemini
+   GEMINI_API_KEY=paste-your-key-here
+   ```
+
+   `corepack pnpm db:env` keeps these lines when it regenerates the file. Never put the key in
+   `.env.example` or any committed file.
+
+3. `corepack pnpm ai:check` confirms the key and model without using any quota (the key is
+   never printed).
+4. Restart `corepack pnpm dev`, upload a sample, and watch **Settings → AI usage**.
+
+Limits (all in `.env.local`, defaults in `.env.example`): 5 calls a minute, 100 a day, 50 per
+workspace a day, 15 pages, 10 MB. When a limit is reached, jobs wait or fail with a clear
+message and the order can be entered manually; nothing switches to a paid service. To turn
+AI off, set `AI_EXTRACTION_PROVIDER=simulated` and restart. Tests always use the simulated
+provider or a mock Gemini server and never call Google.
+
 ## Test it
 
 ```sh
 corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test   # static checks and unit tests
-corepack pnpm db:reset && corepack pnpm db:test                        # 705 database checks (pgTAP)
-corepack pnpm test:concurrency                                         # parallel approvals, stock, workers
+corepack pnpm db:reset && corepack pnpm db:test                        # database checks (pgTAP)
+corepack pnpm test:concurrency                                         # parallel approvals, stock, workers, mock Gemini
 corepack pnpm test:e2e                                                 # preview and production builds
 corepack pnpm test:e2e:app                                             # signed-in journeys, Chromium
 PW_APP_BROWSER=webkit corepack pnpm test:e2e:app                       # the same in WebKit
