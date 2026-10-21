@@ -37,12 +37,12 @@ for (const factor of factors.factors) {
   if (error) throw new Error(`Could not remove a factor: ${error.message}`);
 }
 
-const { error: auditError } = await admin.rpc("record_mfa_reset", {
+const { data: sessionsRevoked, error: auditError } = await admin.rpc("record_mfa_reset", {
   p_user_id: profile.id,
   p_reason: reason.trim(),
 });
 if (auditError)
   throw new Error(`Factors were removed but the audit event failed: ${auditError.message}`);
 console.log(
-  `Removed ${factors.factors.length} factor(s). The user must enrol MFA again at next sign-in if their role requires it.`,
+  `Removed ${factors.factors.length} factor(s) and ended ${sessionsRevoked ?? 0} session(s). The user must enrol MFA again at next sign-in if their role requires it.`,
 );

@@ -1,6 +1,15 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { formAlert, password, signIn, totp, totpSecret, userClient, USERS } from "./app/support";
+import {
+  formAlert,
+  password,
+  signIn,
+  totp,
+  totpSecret,
+  userClient,
+  USERS,
+  test,
+} from "./app/support";
 
 test.describe("two-factor authentication (D-24)", () => {
   test("an Owner is challenged at sign-in; a wrong code is refused", async ({ page }) => {

@@ -23,6 +23,8 @@ export default async function globalSetup(config: FullConfig) {
     DO_NOT_TRACK: "1",
     PATH: `${process.env.HOME}/.docker/bin:${process.env.PATH}`,
   };
+  // Refuses unless the target is verified as OrderPilot's local database.
+  execFileSync("node", ["scripts/dev/assert-local-db.mjs"], { cwd: ROOT, env, stdio: "inherit" });
   execFileSync("corepack", ["pnpm", "-s", "exec", "supabase", "db", "reset", "--local"], {
     cwd: ROOT,
     env,

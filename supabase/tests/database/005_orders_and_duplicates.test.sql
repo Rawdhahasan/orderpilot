@@ -10,6 +10,12 @@ set local search_path = public, extensions;
 
 select plan(49);
 
+-- This file proves what the schema guarantees on its own, so the Phase 2D
+-- status guard (tested in 010) is switched off for this transaction only.
+alter table public.inbound_orders disable trigger inbound_orders_guard_status;
+alter table public.sales_orders disable trigger sales_orders_guard_status;
+alter table public.extraction_runs disable trigger extraction_runs_guard_status;
+
 -- Fixtures (fictional) ----------------------------------------------------------
 -- Northstar workspace, customers Harbor & Pine (a2…01) and Northgate (a2…02).
 create function pg_temp.profile(p_id uuid, p_name text) returns uuid language plpgsql as $$

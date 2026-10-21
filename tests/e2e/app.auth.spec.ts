@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { formAlert, linkFromMail, localEnv, password, signIn, USERS } from "./app/support";
+import { formAlert, linkFromMail, localEnv, password, signIn, USERS, test } from "./app/support";
 
 test.describe("authentication", () => {
   test("the root and protected routes send signed-out visitors to sign in", async ({ page }) => {
@@ -64,6 +64,8 @@ test.describe("authentication", () => {
     const cookies = await context.cookies();
     const auth = cookies.filter((c) => c.name.startsWith("sb-"));
     expect(auth.length).toBeGreaterThan(0);
+    // Leave the app first so no in-flight navigation races the next one.
+    await page.goto("about:blank");
     await context.clearCookies();
     await context.addCookies(
       auth.map((c) => ({ ...c, value: "base64-eyJhY2Nlc3NfdG9rZW4iOiJleHBpcmVkIn0" })),

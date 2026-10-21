@@ -1,12 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { signedInPage, signIn, userClient, USERS } from "./app/support";
+import { signIn, userClient, USERS, test } from "./app/support";
 
 const MEMBERS = "/o/bayview/settings/members";
 
 test.describe("member management", () => {
-  test("an Owner changes a role", async ({ browser }) => {
-    const page = await signedInPage(browser, "bvOwner");
+  test("an Owner changes a role", async ({ open }) => {
+    const page = await open({ as: "bvOwner" });
     await page.goto(MEMBERS);
     const row = page.getByTestId(`member-${USERS.bvApprover}`);
     await row.getByLabel(/Role for/).selectOption({ label: "Processor" });
@@ -18,15 +18,15 @@ test.describe("member management", () => {
     ).toHaveText("Processor");
   });
 
-  test("a suspended member loses access until reactivated", async ({ browser }) => {
-    const page = await signedInPage(browser, "bvOwner");
+  test("a suspended member loses access until reactivated", async ({ open }) => {
+    const page = await open({ as: "bvOwner" });
     await page.goto(MEMBERS);
     const row = page.getByTestId(`member-${USERS.bvInventory}`);
     await row.getByRole("button", { name: "Suspend" }).click();
     await expect(row.getByRole("status")).toHaveText("The member was suspended.");
     await expect(row.getByText("Suspended", { exact: true })).toBeVisible();
 
-    const member = await (await browser.newContext()).newPage();
+    const member = await open();
     await signIn(member, USERS.bvInventory);
     await expect(member).toHaveURL("/workspaces");
     await expect(member.getByText("You don't belong to any workspace yet")).toBeVisible();
@@ -44,8 +44,8 @@ test.describe("member management", () => {
     await expect(member).toHaveURL("/o/bayview/dashboard");
   });
 
-  test("an Owner removes a member after confirming", async ({ browser }) => {
-    const page = await signedInPage(browser, "bvOwner");
+  test("an Owner removes a member after confirming", async ({ open }) => {
+    const page = await open({ as: "bvOwner" });
     await page.goto(MEMBERS);
     await page
       .getByTestId(`member-${USERS.bvProcessor}`)
@@ -55,8 +55,8 @@ test.describe("member management", () => {
     await expect(page.getByTestId(`member-${USERS.bvProcessor}`)).toHaveCount(0);
   });
 
-  test("the last active Owner cannot be demoted, suspended or removed", async ({ browser }) => {
-    const page = await signedInPage(browser, "bvOwner");
+  test("the last active Owner cannot be demoted, suspended or removed", async ({ open }) => {
+    const page = await open({ as: "bvOwner" });
     await page.goto(MEMBERS);
     await expect(page.getByTestId(`member-${USERS.bvOwner}`)).toContainText("This is you");
 
@@ -76,8 +76,8 @@ test.describe("member management", () => {
     expect(still).toEqual({ role: "owner", status: "active" });
   });
 
-  test("members without the right role see no member management", async ({ browser }) => {
-    const page = await (await browser.newContext()).newPage();
+  test("members without the right role see no member management", async ({ open }) => {
+    const page = await open();
     await signIn(page, USERS.bvViewer);
     await page.goto(MEMBERS);
     await expect(page.getByText("You need the Owner or Admin role", { exact: true })).toBeVisible();

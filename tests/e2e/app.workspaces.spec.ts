@@ -1,6 +1,6 @@
-import { expect, test } from "@playwright/test";
+import { expect } from "@playwright/test";
 
-import { linkFromMail, password, signedInPage, signIn, USERS } from "./app/support";
+import { linkFromMail, password, signIn, USERS, test } from "./app/support";
 
 test.describe("workspaces", () => {
   test("another workspace, or one that does not exist, looks the same: not found", async ({
@@ -19,8 +19,8 @@ test.describe("workspaces", () => {
     }
   });
 
-  test("a person in two workspaces chooses and switches between them", async ({ browser }) => {
-    const owner = await signedInPage(browser, "bvOwner");
+  test("a person in two workspaces chooses and switches between them", async ({ open }) => {
+    const owner = await open({ as: "bvOwner" });
     await owner.goto("/o/bayview/settings/members");
     await owner.getByLabel("Email").fill(USERS.nsProcessor);
     await owner.getByLabel("Role", { exact: true }).selectOption({ label: "Viewer" });
@@ -31,7 +31,7 @@ test.describe("workspaces", () => {
       /https?:\/\/[^"'\s<]+\/invite\/[0-9a-f]{64}/,
     );
 
-    const page = await (await browser.newContext()).newPage();
+    const page = await open();
     await page.goto(link);
     await page.getByRole("link", { name: "Sign in to accept" }).click();
     await expect(page).toHaveURL(/\/sign-in\?next=%2Finvite%2F/);
@@ -54,8 +54,8 @@ test.describe("workspaces", () => {
     await expect(page.getByText("You are signed in as Processor")).toBeVisible();
   });
 
-  test("signed-in pages show no fictional preview data", async ({ browser }) => {
-    const page = await signedInPage(browser, "nsOwner");
+  test("signed-in pages show no fictional preview data", async ({ open }) => {
+    const page = await open({ as: "nsOwner" });
     for (const segment of [
       "dashboard",
       "customer-pos",

@@ -6,12 +6,30 @@ set local search_path = public, extensions;
 
 select plan(127);
 
+-- Fixtures set statuses directly, as the workflow functions do (Phase 2D guard).
+select set_config('orderpilot.transition', 'on', true);
+
 -- Run SQL as a signed-in user (authenticated role + JWT claims), returning
 -- 'ok' or 'SQLSTATE:message'.
+-- JWT claims for a signed-in user. AAL2 claims are bound to a live AAL2
+-- session row, as the database requires since Phase 2D (session revocation).
+create function pg_temp.claims(p_user uuid, p_aal text) returns text language plpgsql as $$
+declare v_session uuid;
+begin
+  if p_aal = 'aal2' then
+    select id into v_session from auth.sessions where user_id = p_user and aal = 'aal2' limit 1;
+    if v_session is null then
+      insert into auth.sessions (id, user_id, aal, created_at, updated_at)
+      values (gen_random_uuid(), p_user, 'aal2', now(), now()) returning id into v_session;
+    end if;
+  end if;
+  return json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal, 'session_id', v_session)::text;
+end $$;
+
 create function pg_temp.as_user(p_user uuid, p_sql text, p_aal text default 'aal1') returns text language plpgsql as $$
 declare v text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
+  perform set_config('request.jwt.claims', pg_temp.claims(p_user, p_aal), true);
   execute 'set local role authenticated';
   begin
     execute p_sql;
@@ -28,7 +46,7 @@ end $$;
 create function pg_temp.count_as(p_user uuid, p_sql text, p_aal text default 'aal1') returns bigint language plpgsql as $$
 declare v bigint; e text; m text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
+  perform set_config('request.jwt.claims', pg_temp.claims(p_user, p_aal), true);
   execute 'set local role authenticated';
   begin
     execute p_sql into v;
@@ -46,7 +64,7 @@ end $$;
 create function pg_temp.visible(p_user uuid, p_table text, p_column text, p_org uuid, p_aal text default 'aal1') returns bigint language plpgsql as $$
 declare v bigint; e text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
+  perform set_config('request.jwt.claims', pg_temp.claims(p_user, p_aal), true);
   execute 'set local role authenticated';
   begin
     if p_org is null then

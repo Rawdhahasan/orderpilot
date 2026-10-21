@@ -6,12 +6,30 @@ set local search_path = public, extensions;
 
 select plan(46);
 
+-- Fixtures set statuses directly, as the workflow functions do (Phase 2D guard).
+select set_config('orderpilot.transition', 'on', true);
+
 -- Run SQL as a signed-in user (authenticated role + JWT claims), returning
 -- 'ok' or 'SQLSTATE:message'.
+-- JWT claims for a signed-in user. AAL2 claims are bound to a live AAL2
+-- session row, as the database requires since Phase 2D (session revocation).
+create function pg_temp.claims(p_user uuid, p_aal text) returns text language plpgsql as $$
+declare v_session uuid;
+begin
+  if p_aal = 'aal2' then
+    select id into v_session from auth.sessions where user_id = p_user and aal = 'aal2' limit 1;
+    if v_session is null then
+      insert into auth.sessions (id, user_id, aal, created_at, updated_at)
+      values (gen_random_uuid(), p_user, 'aal2', now(), now()) returning id into v_session;
+    end if;
+  end if;
+  return json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal, 'session_id', v_session)::text;
+end $$;
+
 create function pg_temp.as_user(p_user uuid, p_sql text, p_aal text default 'aal1') returns text language plpgsql as $$
 declare v text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
+  perform set_config('request.jwt.claims', pg_temp.claims(p_user, p_aal), true);
   execute 'set local role authenticated';
   begin
     execute p_sql;
@@ -28,7 +46,7 @@ end $$;
 create function pg_temp.count_as(p_user uuid, p_sql text, p_aal text default 'aal1') returns bigint language plpgsql as $$
 declare v bigint; e text; m text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
+  perform set_config('request.jwt.claims', pg_temp.claims(p_user, p_aal), true);
   execute 'set local role authenticated';
   begin
     execute p_sql into v;
@@ -134,8 +152,9 @@ begin
           '00000000-0000-4000-a200-000000000002', 'NG-1', '00000000-0000-4000-a500-000000000004', now());
   insert into public.inbound_order_lines (id, organization_id, inbound_order_id, line_no)
   values (v_line, '00000000-0000-4000-a000-000000000001', '00000000-0000-4000-d200-000000000002', 1);
-  insert into public.extraction_runs (id, organization_id, inbound_order_id, source_document_id, provider)
-  values ('00000000-0000-4000-d200-000000000004', '00000000-0000-4000-a000-000000000001', '00000000-0000-4000-d200-000000000002', '00000000-0000-4000-d200-000000000001', 'simulated');
+  insert into public.extraction_runs (id, organization_id, inbound_order_id, source_document_id, provider, status, claim_token, lease_expires_at, claimed_at)
+  values ('00000000-0000-4000-d200-000000000004', '00000000-0000-4000-a000-000000000001', '00000000-0000-4000-d200-000000000002', '00000000-0000-4000-d200-000000000001', 'simulated',
+          'running', gen_random_uuid(), now() + interval '2 minutes', now());
   insert into public.sales_orders (id, organization_id, order_number, inbound_order_id, customer_id, customer_po_number, currency, ship_to, subtotal, approved_by, approved_at)
   values ('00000000-0000-4000-d200-000000000005', '00000000-0000-4000-a000-000000000001', 'SO-2026-930001', '00000000-0000-4000-d200-000000000002',
           '00000000-0000-4000-a200-000000000002', 'NG-1', 'USD', '{}', 89.50, '00000000-0000-4000-a500-000000000003', now());
@@ -152,7 +171,7 @@ end $$;
 select throws_ok($$update public.source_documents set sha256 = repeat('e', 64) where id = '00000000-0000-4000-d200-000000000001'$$, '23001', null, 'a stored document''s hash cannot change (PR-03)');
 select throws_ok($$update public.source_documents set original_filename = 'renamed.pdf' where id = '00000000-0000-4000-d200-000000000001'$$, '23001', null, 'a stored document''s metadata cannot change');
 select throws_ok($$delete from public.source_documents where id = '00000000-0000-4000-d200-000000000001'$$, '23001', null, 'documents are never deleted');
-select lives_ok($$update public.extraction_runs set status = 'succeeded', finished_at = now(), raw_output = '{"status": "complete"}' where id = '00000000-0000-4000-d200-000000000004'$$, 'raw extraction output can be written once');
+select lives_ok($$update public.extraction_runs set status = 'succeeded', finished_at = now(), lease_expires_at = null, raw_output = '{"status": "complete"}' where id = '00000000-0000-4000-d200-000000000004'$$, 'raw extraction output can be written once');
 select throws_ok($$update public.extraction_runs set raw_output = '{"status": "tampered"}' where id = '00000000-0000-4000-d200-000000000004'$$, '23001', null, 'raw extraction output is write-once');
 select throws_ok($$update public.sales_order_lines set quantity = 11, backordered_qty = 4 where id = '00000000-0000-4000-d200-000000000006'$$, '23001', null, 'sales order lines are immutable');
 select throws_ok($$delete from public.sales_order_lines where id = '00000000-0000-4000-d200-000000000006'$$, '23001', null, 'sales order lines are never deleted');

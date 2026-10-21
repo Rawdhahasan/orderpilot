@@ -66,14 +66,14 @@ Requires Docker Desktop running, with `docker` on your PATH (the Docker installe
 on your Mac only: no Supabase account or cloud project is used, and the Supabase CLI's
 telemetry is switched off in every script.
 
-| Command                   | What it does                                                                                                                                     |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `corepack pnpm db:start`  | Starts the local Postgres database (port 54322) and applies migrations and seed data. Only the database and its metadata service run in Phase 2A |
-| `corepack pnpm db:reset`  | Rebuilds the **local** OrderPilot database from empty: all migrations, then `supabase/seed.sql`                                                  |
-| `corepack pnpm db:test`   | Runs the pgTAP database tests in `supabase/tests/database`                                                                                       |
-| `corepack pnpm db:types`  | Regenerates `src/server/db/database.types.ts` from the local schema                                                                              |
-| `corepack pnpm db:status` | Shows the connection URL and which services are running                                                                                          |
-| `corepack pnpm db:stop`   | Stops the local database (data is kept until the next reset)                                                                                     |
+| Command                   | What it does                                                                                                                                                                     |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `corepack pnpm db:start`  | Starts the local Postgres database (port 54322) and applies migrations and seed data. Only the database and its metadata service run in Phase 2A                                 |
+| `corepack pnpm db:reset`  | Rebuilds the **local** OrderPilot database from empty: all migrations, then `supabase/seed.sql`. Refuses unless the target is verified local (`scripts/dev/assert-local-db.mjs`) |
+| `corepack pnpm db:test`   | Runs the pgTAP database tests in `supabase/tests/database`                                                                                                                       |
+| `corepack pnpm db:types`  | Regenerates `src/server/db/database.types.ts` from the local schema                                                                                                              |
+| `corepack pnpm db:status` | Shows the connection URL and which services are running                                                                                                                          |
+| `corepack pnpm db:stop`   | Stops the local database (data is kept until the next reset)                                                                                                                     |
 
 Local connection string: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
 (well-known local-only credentials; never used outside your machine).
@@ -96,12 +96,13 @@ Public sign-up is off (D-03): accounts are created only by accepting an invitati
 the local provisioning script above. A lost authenticator is reset by an operator: see
 [docs/runbooks/lost-authenticator.md](docs/runbooks/lost-authenticator.md).
 
-| Command                       | What it does                                                                             |
-| ----------------------------- | ---------------------------------------------------------------------------------------- |
-| `corepack pnpm db:env`        | Writes `.env.local` for the local stack (values are never printed)                       |
-| `corepack pnpm db:provision`  | Sets a local password on the fictional seed users                                        |
-| `corepack pnpm ops:reset-mfa` | Operator MFA reset with an audit record (local stack only)                               |
-| `corepack pnpm test:e2e:app`  | Signed-in journeys on port 3300; **resets the local OrderPilot database** before running |
+| Command                          | What it does                                                                             |
+| -------------------------------- | ---------------------------------------------------------------------------------------- |
+| `corepack pnpm db:env`           | Writes `.env.local` for the local stack (values are never printed)                       |
+| `corepack pnpm db:provision`     | Sets a local password on the fictional seed users                                        |
+| `corepack pnpm ops:reset-mfa`    | Operator MFA reset with an audit record (local stack only)                               |
+| `corepack pnpm test:concurrency` | Parallel approval, stock, fulfilment and worker races against the local stack            |
+| `corepack pnpm test:e2e:app`     | Signed-in journeys on port 3300; **resets the local OrderPilot database** before running |
 
 ## Project structure
 

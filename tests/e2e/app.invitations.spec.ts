@@ -1,14 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 
-import {
-  formAlert,
-  linkFromMail,
-  localSql,
-  password,
-  signedInPage,
-  signIn,
-  USERS,
-} from "./app/support";
+import { formAlert, linkFromMail, localSql, password, signIn, USERS, test } from "./app/support";
 
 const MEMBERS = "/o/northstar/settings/members";
 
@@ -22,14 +14,14 @@ async function invite(page: Page, email: string, role: string) {
 }
 
 test.describe("invitations (D-03)", () => {
-  test("a new person accepts once; the link cannot be replayed", async ({ browser }) => {
-    const owner = await signedInPage(browser, "nsOwner");
+  test("a new person accepts once; the link cannot be replayed", async ({ open }) => {
+    const owner = await open({ as: "nsOwner" });
     const email = "nadia.quinn@northstar.example";
     const link = await invite(owner, email, "Processor");
     await owner.reload();
     await expect(owner.getByRole("cell", { name: email, exact: true })).toBeVisible();
 
-    const invitee = await (await browser.newContext()).newPage();
+    const invitee = await open();
     await invitee.goto(link);
     await expect(
       invitee.getByRole("heading", { level: 1, name: "Join Northstar Distribution" }),
@@ -47,7 +39,7 @@ test.describe("invitations (D-03)", () => {
     await expect(
       invitee.getByRole("heading", { level: 1, name: "Invitation already used" }),
     ).toBeVisible();
-    const stranger = await (await browser.newContext()).newPage();
+    const stranger = await open();
     await stranger.goto(link);
     await expect(
       stranger.getByRole("heading", { level: 1, name: "Invitation already used" }),
@@ -57,15 +49,15 @@ test.describe("invitations (D-03)", () => {
     await expect(owner.getByTestId(`member-${email}`)).toContainText("Processor");
   });
 
-  test("a withdrawn invitation cannot be used", async ({ browser }) => {
-    const owner = await signedInPage(browser, "nsOwner");
+  test("a withdrawn invitation cannot be used", async ({ open }) => {
+    const owner = await open({ as: "nsOwner" });
     const email = "withdrawn.person@northstar.example";
     const link = await invite(owner, email, "Viewer");
     await owner.reload();
     await owner.getByRole("button", { name: `Withdraw invitation for ${email}` }).click();
     await expect(owner.getByRole("cell", { name: email, exact: true })).toHaveCount(0);
 
-    const invitee = await (await browser.newContext()).newPage();
+    const invitee = await open();
     await invitee.goto(link);
     await expect(
       invitee.getByRole("heading", { level: 1, name: "Invitation withdrawn" }),
@@ -73,15 +65,15 @@ test.describe("invitations (D-03)", () => {
     await expect(invitee.getByRole("button", { name: /create account/i })).toHaveCount(0);
   });
 
-  test("an expired invitation cannot be used", async ({ browser }) => {
-    const owner = await signedInPage(browser, "nsOwner");
+  test("an expired invitation cannot be used", async ({ open }) => {
+    const owner = await open({ as: "nsOwner" });
     const email = "late.person@northstar.example";
     const link = await invite(owner, email, "Viewer");
     localSql(
       `update public.organization_invitations set created_at = now() - interval '9 days', expires_at = now() - interval '1 day' where email = '${email}'`,
     );
 
-    const invitee = await (await browser.newContext()).newPage();
+    const invitee = await open();
     await invitee.goto(link);
     await expect(
       invitee.getByRole("heading", { level: 1, name: "Invitation expired" }),
@@ -98,10 +90,10 @@ test.describe("invitations (D-03)", () => {
     }
   });
 
-  test("an invitation cannot be accepted by a different signed-in account", async ({ browser }) => {
-    const owner = await signedInPage(browser, "nsOwner");
+  test("an invitation cannot be accepted by a different signed-in account", async ({ open }) => {
+    const owner = await open({ as: "nsOwner" });
     const link = await invite(owner, "someone.else@northstar.example", "Viewer");
-    const other = await (await browser.newContext()).newPage();
+    const other = await open();
     await signIn(other, USERS.nsViewer);
     await other.goto(link);
     await expect(formAlert(other)).toContainText("different email address");

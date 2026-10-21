@@ -24,14 +24,24 @@ replaced, and they cannot produce a valid 6-digit code.
    corepack pnpm ops:reset-mfa person@example.com "Lost phone; identity confirmed by video call with <Owner>, ticket <ref>"
    ```
 
-   The script removes every MFA factor for that account and writes an
+   The script removes every MFA factor for that account, **ends all of the
+   person's sessions** (their refresh tokens stop working), and writes an
    `mfa.factor_removed` audit event (process `operator.mfa_reset`, with the
-   reason) in each workspace the person belongs to.
+   reason and the number of sessions ended) in each workspace the person
+   belongs to.
 4. **Tell the person to sign in and set up a new authenticator.** Owners and
    Admins are sent to the security page and cannot use the workspace until
-   they enrol again. Sessions that were already MFA-verified stay valid until
-   they expire (at most `jwt_expiry`, 1 hour); ask the person to use
-   "Sign out everywhere" after re-enrolling.
+   they enrol again.
+
+   **What "ends the sessions" covers.** Privileged database access stops
+   immediately: Owner and Admin permissions require that the token's session
+   still exists at AAL2 (`private.session_is_aal2`). The app also treats the
+   person as signed out on the next request, because it validates every
+   session with the Auth server. The one remaining limitation is that an
+   access token already issued stays cryptographically valid until it expires
+   (at most `jwt_expiry`, 1 hour); during that window it can still be used
+   for the non-privileged reads its roles allow, never for Owner or Admin
+   actions. Supabase does not support revoking an issued access token.
 5. **Record the outcome** with the request in your support log.
 
 ## Never

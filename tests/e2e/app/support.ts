@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { expect, type Browser, type Page } from "@playwright/test";
+import { test as base, expect, type BrowserContext, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 /** Local stack details, read from the git-ignored .env.local written by `db:env`. */
@@ -181,13 +181,46 @@ export async function signIn(
       });
   }
   await expect(page).not.toHaveURL(/\/sign-in/, { timeout: 15_000 });
+  await settled(page);
 }
 
-/** A browser context already signed in as one of the users saved by global setup. */
-export async function signedInPage(browser: Browser, name: "nsOwner" | "bvOwner") {
-  const context = await browser.newContext({ storageState: join(AUTH_DIR, `${name}.json`) });
-  return context.newPage();
+/**
+ * Waits until client-side redirects finish (for example /workspaces → the
+ * dashboard), so the test's next navigation never races an in-flight one.
+ */
+export async function settled(page: Page) {
+  let last = "";
+  let stable = 0;
+  for (let i = 0; i < 75 && stable < 3; i++) {
+    await page.waitForTimeout(200);
+    const url = page.url();
+    stable = url === last ? stable + 1 : 0;
+    last = url;
+  }
+  await page.waitForLoadState("load");
 }
+
+/**
+ * Test fixture: `open()` gives a page in a fresh browser context, optionally
+ * signed in as an Owner saved by global setup. Every context is closed when
+ * the test ends, so contexts never accumulate in the shared browser (that
+ * build-up slowed WebKit until journeys timed out).
+ */
+export const test = base.extend<{
+  open: (options?: { as?: "nsOwner" | "bvOwner" }) => Promise<Page>;
+}>({
+  open: async ({ browser }, provide) => {
+    const contexts: BrowserContext[] = [];
+    await provide(async (options = {}) => {
+      const context = await browser.newContext(
+        options.as ? { storageState: join(AUTH_DIR, `${options.as}.json`) } : {},
+      );
+      contexts.push(context);
+      return context.newPage();
+    });
+    await Promise.all(contexts.map((context) => context.close()));
+  },
+});
 
 type MailSummary = { ID: string; Subject: string; To: { Address: string }[] };
 

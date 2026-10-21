@@ -22,8 +22,6 @@ export default defineConfig({
   testDir: "./tests/e2e",
   testMatch: /app\..*\.spec\.ts/,
   workers: 1,
-  // Each journey signs in several people; WebKit is markedly slower locally.
-  timeout: 120_000,
   projects: [{ name: browser, use: { ...devices[BROWSERS[browser]] } }],
   globalSetup: "./tests/e2e/app/global-setup.ts",
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure" },

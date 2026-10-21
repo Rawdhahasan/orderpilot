@@ -100,9 +100,14 @@ select is(
   (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prosecdef),
-  array['accept_invitation', 'change_member_role', 'describe_invitation', 'invite_member', 'issue_invitation_token',
-        'record_mfa_reset', 'remove_member', 'revoke_invitation', 'set_base_currency', 'set_customer_status',
-        'set_member_status', 'set_product_price', 'set_product_tracking', 'update_workspace_settings'],
+  array['accept_invitation', 'approve_inbound_order', 'cancel_inbound_order', 'cancel_sales_order',
+        'change_member_role', 'claim_extraction_job', 'complete_extraction', 'describe_invitation',
+        'extend_extraction_lease', 'fail_extraction', 'fulfill_sales_order', 'invite_member',
+        'issue_invitation_token', 'override_exception', 'record_mfa_reset', 'recover_stale_extractions',
+        'reject_inbound_order', 'remove_member', 'request_changes', 'retry_extraction', 'revoke_invitation',
+        'set_base_currency', 'set_customer_status', 'set_member_status', 'set_product_price',
+        'set_product_tracking', 'start_extraction', 'submit_inbound_order', 'switch_to_manual_entry',
+        'update_workspace_settings', 'withdraw_inbound_order'],
   'only reviewed role-checked functions are SECURITY DEFINER in public'
 );
 select is(

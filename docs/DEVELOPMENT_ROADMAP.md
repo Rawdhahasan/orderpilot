@@ -90,7 +90,7 @@ flowchart LR
 | 2A | Local Supabase and database schema: migrations, constraints, indexes, fictional seed, schema tests, generated types | Complete, awaiting approval: 7 migrations, clean reset verified, 130/130 database checks pass |
 | 2B | RLS policies, grants, role-checked functions, audit foundation (audit table, tamper-proofing, automatic change recording), seeded users per role, isolation tests | Complete, awaiting approval: 4 migrations, 401/401 database checks pass |
 | 2C | Authentication, MFA, invitations, profile, members, settings, workspaces | Complete, awaiting approval: 1 migration (12 total), database and app journey tests listed in TESTING_STRATEGY |
-| 2D | Business transactions (approval, stock, fulfilment, cancellation), status guards, extraction job infrastructure, integrity checks, concurrency tests | Not started |
+| 2D | Business transactions (approval, stock, fulfilment, cancellation), status guards, extraction job infrastructure, integrity checks, concurrency tests | Complete: 3 migrations (15 total), 604 database checks, concurrency suite |
 
 **Decisions required first:** all ★ decisions in PRODUCT_REQUIREMENTS §15.2 (including D-34 and D-35), open questions Q-1, Q-2, Q-4, Q-5, and a container runtime for local Supabase (R-20).
 

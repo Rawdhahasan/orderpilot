@@ -2007,6 +2007,28 @@ export type Database = {
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
+      approve_inbound_order: {
+        Args: {
+          p_expected_version: number;
+          p_inbound_order_id: string;
+          p_note?: string;
+          p_stock_decisions?: Json;
+        };
+        Returns: Json;
+      };
+      cancel_inbound_order: {
+        Args: {
+          p_expected_version: number;
+          p_inbound_order_id: string;
+          p_note?: string;
+          p_reason: Database["public"]["Enums"]["cancel_reason"];
+        };
+        Returns: Json;
+      };
+      cancel_sales_order: {
+        Args: { p_expected_version: number; p_reason: string; p_sales_order_id: string };
+        Returns: Json;
+      };
       change_member_role: {
         Args: { p_member_id: string; p_role: Database["public"]["Enums"]["member_role"] };
         Returns: {
@@ -2029,6 +2051,30 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      claim_extraction_job: {
+        Args: { p_lease_seconds?: number };
+        Returns: {
+          attempt: number;
+          claim_token: string;
+          inbound_order_id: string;
+          lease_expires_at: string;
+          organization_id: string;
+          provider: string;
+          run_id: string;
+          source_document_id: string;
+        }[];
+      };
+      complete_extraction: {
+        Args: {
+          p_claim_token: string;
+          p_duration_ms?: number;
+          p_overall_confidence?: number;
+          p_provider_version?: string;
+          p_raw_output: Json;
+          p_run_id: string;
+        };
+        Returns: string;
+      };
       describe_invitation: {
         Args: { p_token: string };
         Returns: {
@@ -2040,6 +2086,24 @@ export type Database = {
           state: string;
         }[];
       };
+      extend_extraction_lease: {
+        Args: { p_claim_token: string; p_lease_seconds?: number; p_run_id: string };
+        Returns: boolean;
+      };
+      fail_extraction: {
+        Args: {
+          p_claim_token: string;
+          p_error_code: string;
+          p_error_message?: string;
+          p_failure_kind: string;
+          p_run_id: string;
+        };
+        Returns: string;
+      };
+      fulfill_sales_order: {
+        Args: { p_expected_version: number; p_sales_order_id: string };
+        Returns: Json;
+      };
       invite_member: {
         Args: {
           p_email: string;
@@ -2049,8 +2113,22 @@ export type Database = {
         Returns: string;
       };
       issue_invitation_token: { Args: { p_invitation_id: string }; Returns: string };
-      record_mfa_reset: { Args: { p_reason: string; p_user_id: string }; Returns: undefined };
+      override_exception: { Args: { p_exception_id: string; p_reason: string }; Returns: Json };
+      record_mfa_reset: { Args: { p_reason: string; p_user_id: string }; Returns: number };
+      recover_stale_extractions: { Args: Record<PropertyKey, never>; Returns: number };
+      reject_inbound_order: {
+        Args: { p_expected_version: number; p_inbound_order_id: string; p_reason: string };
+        Returns: Json;
+      };
       remove_member: { Args: { p_member_id: string }; Returns: undefined };
+      request_changes: {
+        Args: { p_expected_version: number; p_inbound_order_id: string; p_reason: string };
+        Returns: Json;
+      };
+      retry_extraction: {
+        Args: { p_expected_version: number; p_inbound_order_id: string };
+        Returns: string;
+      };
       revoke_invitation: { Args: { p_invitation_id: string }; Returns: undefined };
       set_base_currency: {
         Args: { p_currency: string; p_organization_id: string };
@@ -2196,6 +2274,18 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      start_extraction: {
+        Args: { p_inbound_order_id: string; p_provider?: string };
+        Returns: string;
+      };
+      submit_inbound_order: {
+        Args: { p_expected_version: number; p_inbound_order_id: string; p_note?: string };
+        Returns: Json;
+      };
+      switch_to_manual_entry: {
+        Args: { p_expected_version: number; p_inbound_order_id: string };
+        Returns: Json;
+      };
       update_workspace_settings: {
         Args: { p_changes: Json; p_organization_id: string };
         Returns: {
@@ -2225,6 +2315,10 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      withdraw_inbound_order: {
+        Args: { p_expected_version: number; p_inbound_order_id: string };
+        Returns: Json;
       };
     };
     Enums: {
