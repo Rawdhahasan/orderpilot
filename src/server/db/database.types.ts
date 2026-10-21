@@ -1282,7 +1282,7 @@ export type Database = {
           organization_id: string;
           role: Database["public"]["Enums"]["member_role"];
           status: Database["public"]["Enums"]["invitation_status"];
-          token_hash: string;
+          token_hash: string | null;
           updated_at: string;
         };
         ComputedFields: never;
@@ -1297,7 +1297,7 @@ export type Database = {
           organization_id: string;
           role: Database["public"]["Enums"]["member_role"];
           status?: Database["public"]["Enums"]["invitation_status"];
-          token_hash: string;
+          token_hash?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -1311,7 +1311,7 @@ export type Database = {
           organization_id?: string;
           role?: Database["public"]["Enums"]["member_role"];
           status?: Database["public"]["Enums"]["invitation_status"];
-          token_hash?: string;
+          token_hash?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -2006,6 +2006,52 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_invitation: { Args: { p_token: string }; Returns: string };
+      change_member_role: {
+        Args: { p_member_id: string; p_role: Database["public"]["Enums"]["member_role"] };
+        Returns: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          invited_by: string | null;
+          joined_at: string;
+          organization_id: string;
+          role: Database["public"]["Enums"]["member_role"];
+          status: Database["public"]["Enums"]["member_status"];
+          updated_at: string;
+          updated_by: string | null;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "organization_members";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      describe_invitation: {
+        Args: { p_token: string };
+        Returns: {
+          email: string;
+          invitation_id: string;
+          organization_name: string;
+          organization_slug: string;
+          role: Database["public"]["Enums"]["member_role"];
+          state: string;
+        }[];
+      };
+      invite_member: {
+        Args: {
+          p_email: string;
+          p_organization_id: string;
+          p_role: Database["public"]["Enums"]["member_role"];
+        };
+        Returns: string;
+      };
+      issue_invitation_token: { Args: { p_invitation_id: string }; Returns: string };
+      record_mfa_reset: { Args: { p_reason: string; p_user_id: string }; Returns: undefined };
+      remove_member: { Args: { p_member_id: string }; Returns: undefined };
+      revoke_invitation: { Args: { p_invitation_id: string }; Returns: undefined };
       set_base_currency: {
         Args: { p_currency: string; p_organization_id: string };
         Returns: {
@@ -2066,6 +2112,28 @@ export type Database = {
         SetofOptions: {
           from: "*";
           to: "customers";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      set_member_status: {
+        Args: { p_member_id: string; p_status: Database["public"]["Enums"]["member_status"] };
+        Returns: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          invited_by: string | null;
+          joined_at: string;
+          organization_id: string;
+          role: Database["public"]["Enums"]["member_role"];
+          status: Database["public"]["Enums"]["member_status"];
+          updated_at: string;
+          updated_by: string | null;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "organization_members";
           isOneToOne: true;
           isSetofReturn: false;
         };

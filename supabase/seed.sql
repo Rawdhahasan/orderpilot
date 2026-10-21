@@ -104,15 +104,24 @@ with people (id, org, role, full_name, email) as (
     ('00000000-0000-4000-b500-000000000005', '00000000-0000-4000-b000-000000000001', 'inventory_manager', 'Tariq Begum', 'tariq.begum@bayview.example'),
     ('00000000-0000-4000-b500-000000000006', '00000000-0000-4000-b000-000000000001', 'viewer', 'Ellie Marsh', 'ellie.marsh@bayview.example')
 ), users as (
-  insert into auth.users (instance_id, id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
-  select '00000000-0000-0000-0000-000000000000', id, 'authenticated', 'authenticated', email,
-         '{"provider": "email", "providers": ["email"]}'::jsonb, '{}'::jsonb, now(), now()
+  -- Auth reads these token columns as strings, so they must be '' (not null).
+  -- No password is set here: run "corepack pnpm db:provision" locally.
+  insert into auth.users (
+    instance_id, id, aud, role, email, email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+    confirmation_token, recovery_token, email_change_token_new, email_change, email_change_token_current,
+    phone_change, phone_change_token, reauthentication_token, created_at, updated_at
+  )
+  select '00000000-0000-0000-0000-000000000000', id, 'authenticated', 'authenticated', email, now(),
+         '{"provider": "email", "providers": ["email"]}'::jsonb, jsonb_build_object('full_name', full_name),
+         '', '', '', '', '', '', '', '', now(), now()
     from people
-  returning id
-), profiles as (
-  insert into public.profiles (id, full_name, email)
-  select p.id, p.full_name, p.email from people p join users u on u.id = p.id
-  returning id
+  returning id, email
+), identities as (
+  insert into auth.identities (provider_id, user_id, identity_data, provider, created_at, updated_at)
+  select u.id::text, u.id, jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true), 'email', now(), now()
+    from users u
+  returning user_id
 )
+-- Profiles are created by the auth.users trigger (Phase 2C).
 insert into public.organization_members (organization_id, user_id, role)
-select p.org, p.id, p.role::public.member_role from people p join profiles pr on pr.id = p.id;
+select p.org, p.id, p.role::public.member_role from people p join users u on u.id = p.id;

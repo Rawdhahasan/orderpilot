@@ -255,6 +255,17 @@ Day-to-day runs use Chromium only. **All three engines (Chromium, Firefox, WebKi
 | E2E-22 | Fulfil an order with a backorder | "Fulfilled · N backordered" shown; stock issued for the allocated quantity only (M-02) |
 | E2E-23 | Profile and security page | Name, password and MFA changes (M-09) |
 
+**Phase 2C status.** `corepack pnpm test:e2e:app` (`tests/e2e/app.*.spec.ts`, port 3300)
+covers E2E-01, E2E-02, E2E-03, E2E-20 (workspace level) and parts of E2E-19 and E2E-23,
+plus: wrong-password and unknown-email answers are identical; public sign-up is refused;
+external `next=` targets are ignored; a tampered session cookie counts as signed out;
+password reset through local Mailpit; withdrawn, expired, replayed and invalid invitation
+links; a different signed-in account cannot accept; role change, suspension (access lost
+and restored), removal, and last-Owner protection; Admin without MFA is held at the
+security page and refused by the database; the CSP uses a nonce and no `unsafe-eval`.
+Global setup resets **only OrderPilot's local database**, provisions a random password and
+enrols TOTP for both seed Owners; codes are computed from the local Auth container's clock.
+
 ---
 
 ## 9. Accessibility testing

@@ -25,10 +25,10 @@ begin
 end $$;
 
 -- Count rows as a signed-in user (errors propagate after the role is reset).
-create function pg_temp.count_as(p_user uuid, p_sql text) returns bigint language plpgsql as $$
+create function pg_temp.count_as(p_user uuid, p_sql text, p_aal text default 'aal1') returns bigint language plpgsql as $$
 declare v bigint; e text; m text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', 'aal1')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
   execute 'set local role authenticated';
   begin
     execute p_sql into v;
@@ -43,10 +43,10 @@ end $$;
 
 -- Rows of one workspace a user can see in a table: -1 when the table is not
 -- accessible at all (no grant), otherwise the RLS-filtered count.
-create function pg_temp.visible(p_user uuid, p_table text, p_column text, p_org uuid) returns bigint language plpgsql as $$
+create function pg_temp.visible(p_user uuid, p_table text, p_column text, p_org uuid, p_aal text default 'aal1') returns bigint language plpgsql as $$
 declare v bigint; e text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', 'aal1')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
   execute 'set local role authenticated';
   begin
     if p_org is null then
@@ -115,8 +115,7 @@ select pg_temp.populate('00000000-0000-4000-b000-000000000001', '00000000-0000-4
   '00000000-0000-4000-b400-000000000001', '00000000-0000-4000-b500-000000000001', 'IN-920001', 'BV-2026-920001', 'GBP');
 
 -- A signed-in user who belongs to no workspace.
-insert into auth.users (id, email) values ('00000000-0000-4000-c000-0000000000ff', 'outsider@test.example');
-insert into public.profiles (id, full_name, email) values ('00000000-0000-4000-c000-0000000000ff', 'Outsider', 'outsider@test.example');
+insert into auth.users (id, email, raw_user_meta_data) values ('00000000-0000-4000-c000-0000000000ff', 'outsider@test.example', '{"full_name": "Outsider"}');
 
 create temporary table tenant_tables (name text primary key, org_column text not null, member_visible boolean not null);
 insert into tenant_tables values
@@ -155,19 +154,19 @@ select is(
 
 -- 21 tables × Northstar Owner: no Bayview rows visible.
 select ok(
-  pg_temp.visible('00000000-0000-4000-a500-000000000001', name, org_column, '00000000-0000-4000-b000-000000000001') <= 0,
+  pg_temp.visible('00000000-0000-4000-a500-000000000001', name, org_column, '00000000-0000-4000-b000-000000000001', 'aal2') <= 0,
   name || ': Northstar Owner sees no Bayview rows'
 ) from tenant_tables order by name;
 
 -- 21 tables × Bayview Owner: no Northstar rows visible.
 select ok(
-  pg_temp.visible('00000000-0000-4000-b500-000000000001', name, org_column, '00000000-0000-4000-a000-000000000001') <= 0,
+  pg_temp.visible('00000000-0000-4000-b500-000000000001', name, org_column, '00000000-0000-4000-a000-000000000001', 'aal2') <= 0,
   name || ': Bayview Owner sees no Northstar rows'
 ) from tenant_tables order by name;
 
 -- 21 tables × Northstar Owner: own rows visible exactly where members may read.
 select is(
-  sign(pg_temp.visible('00000000-0000-4000-a500-000000000001', name, org_column, '00000000-0000-4000-a000-000000000001'))::bigint,
+  sign(pg_temp.visible('00000000-0000-4000-a500-000000000001', name, org_column, '00000000-0000-4000-a000-000000000001', 'aal2'))::bigint,
   case when member_visible then 1::bigint else -1::bigint end,
   name || case when member_visible then ': Northstar Owner sees own rows' else ': no API access even to own rows' end
 ) from tenant_tables order by name;
@@ -193,43 +192,43 @@ select alike(pg_temp.as_anon($$select public.set_customer_status('00000000-0000-
 -- Cross-tenant writes are impossible -------------------------------------------------
 select alike(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
-    $$insert into public.customers (organization_id, name) values ('00000000-0000-4000-b000-000000000001', 'Planted')$$),
+    $$insert into public.customers (organization_id, name) values ('00000000-0000-4000-b000-000000000001', 'Planted')$$, 'aal2'),
   '42501:%', 'Northstar Owner cannot create a customer in Bayview');
 select is(
   pg_temp.count_as('00000000-0000-4000-a500-000000000001',
-    $$with u as (update public.customers set name = 'Renamed' where organization_id = '00000000-0000-4000-b000-000000000001' returning 1) select count(*) from u$$),
+    $$with u as (update public.customers set name = 'Renamed' where organization_id = '00000000-0000-4000-b000-000000000001' returning 1) select count(*) from u$$, 'aal2'),
   0::bigint, 'Northstar Owner cannot update Bayview customers');
 select is(
   pg_temp.count_as('00000000-0000-4000-a500-000000000001',
-    $$with d as (delete from public.customer_prices where organization_id = '00000000-0000-4000-b000-000000000001' returning 1) select count(*) from d$$),
+    $$with d as (delete from public.customer_prices where organization_id = '00000000-0000-4000-b000-000000000001' returning 1) select count(*) from d$$, 'aal2'),
   0::bigint, 'Northstar Owner cannot delete Bayview prices');
 select alike(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
     $$insert into public.customer_addresses (organization_id, customer_id, type, line1, country_code)
-      values ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-b200-000000000001', 'shipping', '1 Planted St', 'GB')$$),
+      values ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-b200-000000000001', 'shipping', '1 Planted St', 'GB')$$, 'aal2'),
   '23503:%', 'a Northstar address cannot attach to a Bayview customer');
 select alike(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
     $$insert into public.customer_prices (organization_id, customer_id, product_id, unit_price, valid_from)
-      values ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-a200-000000000002', '00000000-0000-4000-b400-000000000002', 1, '2026-01-01')$$),
+      values ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-a200-000000000002', '00000000-0000-4000-b400-000000000002', 1, '2026-01-01')$$, 'aal2'),
   '23503:%', 'a Northstar price cannot reference a Bayview product');
 select alike(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
-    $$update public.customers set organization_id = '00000000-0000-4000-b000-000000000001' where id = '00000000-0000-4000-a200-000000000002'$$),
+    $$update public.customers set organization_id = '00000000-0000-4000-b000-000000000001' where id = '00000000-0000-4000-a200-000000000002'$$, 'aal2'),
   '42501:%', 'a record cannot be moved to another workspace');
 
 -- Workflow functions never reveal or change other workspaces' records ---------------
 select is(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
-    $$select public.set_customer_status('00000000-0000-4000-b200-000000000001', 'on_hold', 'x')$$),
+    $$select public.set_customer_status('00000000-0000-4000-b200-000000000001', 'on_hold', 'x')$$, 'aal2'),
   'P0002:not_found', 'set_customer_status on a Bayview customer: not found');
 select is(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
-    $$select public.set_product_price('00000000-0000-4000-b400-000000000001', 1)$$),
+    $$select public.set_product_price('00000000-0000-4000-b400-000000000001', 1)$$, 'aal2'),
   'P0002:not_found', 'set_product_price on a Bayview product: not found');
 select is(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
-    $$select public.set_product_tracking('00000000-0000-4000-b400-000000000001', false)$$),
+    $$select public.set_product_tracking('00000000-0000-4000-b400-000000000001', false)$$, 'aal2'),
   'P0002:not_found', 'set_product_tracking on a Bayview product: not found');
 select is(
   pg_temp.as_user('00000000-0000-4000-a500-000000000001',
@@ -242,7 +241,7 @@ select is(
 
 -- Profiles: yourself and co-members only ------------------------------------------
 select is(
-  pg_temp.count_as('00000000-0000-4000-a500-000000000001', 'select count(*) from public.profiles'),
+  pg_temp.count_as('00000000-0000-4000-a500-000000000001', 'select count(*) from public.profiles', 'aal2'),
   6::bigint, 'Northstar Owner sees exactly the six Northstar profiles');
 select is(
   pg_temp.count_as('00000000-0000-4000-c000-0000000000ff', 'select count(*) from public.profiles'),
@@ -255,13 +254,13 @@ select is(
   0::bigint, 'a suspended member sees nothing');
 select alike(
   pg_temp.as_user('00000000-0000-4000-a500-000000000004',
-    $$insert into public.customers (organization_id, name) values ('00000000-0000-4000-a000-000000000001', 'After suspension')$$),
+    $$insert into public.customers (organization_id, name) values ('00000000-0000-4000-a000-000000000001', 'After suspension')$$, 'aal2'),
   '42501:%', 'a suspended member cannot write');
 update public.organization_members set status = 'active' where user_id = '00000000-0000-4000-a500-000000000004';
 
 update public.organizations set status = 'suspended' where id = '00000000-0000-4000-b000-000000000001';
 select is(
-  pg_temp.count_as('00000000-0000-4000-b500-000000000001', 'select count(*) from public.customers'),
+  pg_temp.count_as('00000000-0000-4000-b500-000000000001', 'select count(*) from public.customers', 'aal2'),
   0::bigint, 'members of a suspended workspace see nothing');
 
 select * from finish();

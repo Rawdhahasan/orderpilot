@@ -1,0 +1,81 @@
+"use client";
+
+import { CheckCircle2, OctagonAlert } from "lucide-react";
+import type { ComponentProps, ReactNode } from "react";
+import { useFormStatus } from "react-dom";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/cn";
+
+/** Labelled input with helper and error text wired for assistive technology. */
+export function Field({
+  label,
+  name,
+  error,
+  help,
+  className,
+  ...props
+}: { label: string; name: string; error?: string; help?: ReactNode } & ComponentProps<
+  typeof Input
+>) {
+  const id = props.id ?? `field-${name}`;
+  const describedBy =
+    [error ? `${id}-error` : null, help ? `${id}-help` : null].filter(Boolean).join(" ") ||
+    undefined;
+  return (
+    <div className={cn("space-y-1.5", className)}>
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        name={name}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={describedBy}
+        {...props}
+      />
+      {help ? (
+        <p id={`${id}-help`} className="text-caption text-subtle-foreground">
+          {help}
+        </p>
+      ) : null}
+      {error ? (
+        <p id={`${id}-error`} className="flex items-center gap-1 text-small text-danger-700">
+          <OctagonAlert aria-hidden className="size-3.5" />
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Success or error message for a whole form, announced to screen readers. */
+export function FormMessage({ ok, message }: { ok: boolean; message?: string }) {
+  if (!message) return null;
+  return (
+    <p
+      role={ok ? "status" : "alert"}
+      className={cn(
+        "flex items-start gap-2 rounded-md px-3 py-2 text-small",
+        ok ? "bg-success-50 text-success-800" : "bg-danger-50 text-danger-800",
+      )}
+    >
+      {ok ? (
+        <CheckCircle2 aria-hidden className="mt-0.5 size-4 shrink-0" />
+      ) : (
+        <OctagonAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+      )}
+      {message}
+    </p>
+  );
+}
+
+/** Submit button that shows a spinner and stays disabled while the action runs. */
+export function SubmitButton({ children, ...props }: ComponentProps<typeof Button>) {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" pending={pending} {...props}>
+      {children}
+    </Button>
+  );
+}

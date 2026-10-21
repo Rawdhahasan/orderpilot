@@ -25,10 +25,10 @@ begin
 end $$;
 
 -- Count rows as a signed-in user (errors propagate after the role is reset).
-create function pg_temp.count_as(p_user uuid, p_sql text) returns bigint language plpgsql as $$
+create function pg_temp.count_as(p_user uuid, p_sql text, p_aal text default 'aal1') returns bigint language plpgsql as $$
 declare v bigint; e text; m text;
 begin
-  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', 'aal1')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated', 'aal', p_aal)::text, true);
   execute 'set local role authenticated';
   begin
     execute p_sql into v;
@@ -82,7 +82,7 @@ select is(
   'Overdue invoices/on_hold',
   'role-checked functions record their reason with the change');
 select is(pg_temp.as_user('00000000-0000-4000-a500-000000000002',
-  $$select public.set_product_price('00000000-0000-4000-a400-000000000003', 39.0000, 'Supplier increase')$$), 'ok', 'Admin changes a price');
+  $$select public.set_product_price('00000000-0000-4000-a400-000000000003', 39.0000, 'Supplier increase')$$, 'aal2'), 'ok', 'Admin changes a price');
 select is(
   (select changes -> 'list_price' from public.audit_events where action = 'product.updated' and entity_id = '00000000-0000-4000-a400-000000000003'),
   '[38.5000, 39.0000]'::jsonb,
@@ -108,13 +108,13 @@ select is(
 select is(pg_temp.count_as('00000000-0000-4000-a500-000000000004', 'select count(*) from public.audit_events'), 0::bigint, 'Processors cannot read the workspace audit log');
 select ok(pg_temp.count_as('00000000-0000-4000-a500-000000000003', 'select count(*) from public.audit_events') > 0, 'Approvers can read their workspace audit log');
 select is(pg_temp.count_as('00000000-0000-4000-a500-000000000003',
-  $$select count(*) from public.audit_events where organization_id = '00000000-0000-4000-b000-000000000001'$$), 0::bigint, 'Approvers cannot read other workspaces'' audit logs');
+  $$select count(*) from public.audit_events where organization_id = '00000000-0000-4000-b000-000000000001'$$, 'aal2'), 0::bigint, 'Approvers cannot read other workspaces'' audit logs');
 
 -- Audit records are immutable, even for the database owner ----------------------------
 select throws_ok($$update public.audit_events set reason = 'edited'$$, '23001', null, 'audit events cannot be updated');
 select throws_ok($$delete from public.audit_events$$, '23001', null, 'audit events cannot be deleted');
 select throws_ok($$truncate public.audit_events$$, '23001', null, 'audit events cannot be truncated');
-select alike(pg_temp.as_user('00000000-0000-4000-a500-000000000001', $$delete from public.audit_events$$), '42501:%', 'signed-in users have no delete access to audit events');
+select alike(pg_temp.as_user('00000000-0000-4000-a500-000000000001', $$delete from public.audit_events$$, 'aal2'), '42501:%', 'signed-in users have no delete access to audit events');
 
 -- Append-only ledger and immutable history ------------------------------------------
 select throws_ok($$update public.inventory_movements set reference = 'edited'$$, '23001', null, 'stock movements cannot be updated');
@@ -173,7 +173,7 @@ select is(
   '00000000-0000-4000-a500-000000000004/00000000-0000-4000-a500-000000000003',
   'created_by is the creator and updated_by the last editor');
 select is(pg_temp.as_user('00000000-0000-4000-a500-000000000001',
-  $$update public.customers set notes = 'third' where id = (select id from public.customers where name = 'Audit Test Co')$$), 'ok', 'Owner edits the customer');
+  $$update public.customers set notes = 'third' where id = (select id from public.customers where name = 'Audit Test Co')$$, 'aal2'), 'ok', 'Owner edits the customer');
 select is(
   (select created_by::text || '/' || updated_by::text from public.customers where id = (select id from public.customers where name = 'Audit Test Co')),
   '00000000-0000-4000-a500-000000000004/00000000-0000-4000-a500-000000000001',

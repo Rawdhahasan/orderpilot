@@ -78,6 +78,31 @@ telemetry is switched off in every script.
 Local connection string: `postgresql://postgres:postgres@127.0.0.1:54322/postgres`
 (well-known local-only credentials; never used outside your machine).
 
+## Signing in locally (Phase 2C)
+
+From Phase 2C the stack also runs local Auth (email, password and TOTP MFA) and
+Mailpit, a local mail catcher. No email ever leaves your machine.
+
+1. `corepack pnpm db:start`, then `corepack pnpm db:env`. This writes the git-ignored
+   `.env.local` from the running local stack. Never commit it.
+2. `ORDERPILOT_DEV_PASSWORD='choose-12-or-more' corepack pnpm db:provision` sets that
+   password on the fictional seed users (for example `sofia.brandt@northstar.example`,
+   Owner). Without the variable a random password is generated and printed once.
+3. `corepack pnpm dev` and open http://localhost:3000. Owners and Admins are asked to
+   set up an authenticator app before they can use a workspace (D-24).
+4. Invitation and password-reset emails appear in Mailpit at http://127.0.0.1:54324.
+
+Public sign-up is off (D-03): accounts are created only by accepting an invitation, or by
+the local provisioning script above. A lost authenticator is reset by an operator: see
+[docs/runbooks/lost-authenticator.md](docs/runbooks/lost-authenticator.md).
+
+| Command                       | What it does                                                                             |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `corepack pnpm db:env`        | Writes `.env.local` for the local stack (values are never printed)                       |
+| `corepack pnpm db:provision`  | Sets a local password on the fictional seed users                                        |
+| `corepack pnpm ops:reset-mfa` | Operator MFA reset with an audit record (local stack only)                               |
+| `corepack pnpm test:e2e:app`  | Signed-in journeys on port 3300; **resets the local OrderPilot database** before running |
+
 ## Project structure
 
 ```

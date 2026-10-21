@@ -100,7 +100,9 @@ select is(
   (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prosecdef),
-  array['set_base_currency', 'set_customer_status', 'set_product_price', 'set_product_tracking', 'update_workspace_settings'],
+  array['accept_invitation', 'change_member_role', 'describe_invitation', 'invite_member', 'issue_invitation_token',
+        'record_mfa_reset', 'remove_member', 'revoke_invitation', 'set_base_currency', 'set_customer_status',
+        'set_member_status', 'set_product_price', 'set_product_tracking', 'update_workspace_settings'],
   'only reviewed role-checked functions are SECURITY DEFINER in public'
 );
 select is(
@@ -160,11 +162,11 @@ select is(
     'customer_prices:DELETE', 'customer_prices:SELECT', 'customers:SELECT', 'extraction_runs:SELECT',
     'inbound_order_lines:SELECT', 'inbound_orders:SELECT', 'inventory_balances:SELECT',
     'inventory_movements:SELECT', 'locations:SELECT', 'order_exceptions:SELECT',
-    'organization_invitations:SELECT', 'organization_members:SELECT', 'organizations:SELECT',
+    'organization_members:SELECT', 'organizations:SELECT',
     'products:SELECT', 'profiles:SELECT', 'sales_order_lines:SELECT', 'sales_orders:SELECT',
     'source_documents:SELECT', 'uom_codes:SELECT'
   ],
-  'signed-in users have table-level SELECT only (plus DELETE on customer prices); writes are column grants'
+  'signed-in users have table-level SELECT only (plus DELETE on customer prices; invitations are column-level); writes are column grants'
 );
 select is(
   (select coalesce(array_agg(distinct table_name || '.' || column_name || ':' || privilege_type

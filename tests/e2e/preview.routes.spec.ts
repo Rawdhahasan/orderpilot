@@ -37,8 +37,9 @@ test.describe("development preview routes", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Page not found" })).toBeVisible();
   });
 
-  test("the home page links to the preview in development", async ({ page }) => {
+  test("the sign-in page links to the preview in development", async ({ page }) => {
     await page.goto("/");
+    await expect(page).toHaveURL(/\/sign-in$/);
     await page.getByRole("link", { name: "Open the development preview" }).click();
     await expect(page).toHaveURL(/\/preview\/dashboard$/);
   });

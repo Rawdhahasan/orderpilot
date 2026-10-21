@@ -14,8 +14,8 @@ select plan(49);
 -- Northstar workspace, customers Harbor & Pine (a2…01) and Northgate (a2…02).
 create function pg_temp.profile(p_id uuid, p_name text) returns uuid language plpgsql as $$
 begin
-  insert into auth.users (id, email) values (p_id, lower(replace(p_name, ' ', '.')) || '@test.example');
-  insert into public.profiles (id, full_name, email) values (p_id, p_name, lower(replace(p_name, ' ', '.')) || '@test.example');
+  insert into auth.users (id, email, raw_user_meta_data)
+  values (p_id, lower(replace(p_name, ' ', '.')) || '@test.example', jsonb_build_object('full_name', p_name));
   return p_id;
 end $$;
 

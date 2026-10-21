@@ -44,9 +44,10 @@ test.describe("production build never exposes the development preview", () => {
     expect(offenders).toEqual([]);
   });
 
-  test("the home page renders without a preview link", async ({ page }) => {
+  test("the home page goes to sign-in, with no preview link", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "OrderPilot" })).toBeVisible();
+    await expect(page).toHaveURL(/\/sign-in$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Sign in" })).toBeVisible();
     await expect(page.getByRole("link", { name: /development preview/i })).toHaveCount(0);
   });
 
@@ -57,5 +58,8 @@ test.describe("production build never exposes the development preview", () => {
     expect(headers["x-frame-options"]).toBe("DENY");
     expect(headers["referrer-policy"]).toBe("strict-origin-when-cross-origin");
     expect(headers["x-powered-by"]).toBeUndefined();
+    const csp = headers["content-security-policy"] ?? "";
+    expect(csp).toMatch(/script-src 'self' 'nonce-[^']+' 'strict-dynamic'/);
+    expect(csp).not.toContain("unsafe-eval");
   });
 });

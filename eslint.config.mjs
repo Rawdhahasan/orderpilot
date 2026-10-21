@@ -8,6 +8,12 @@ const previewImport = {
     "Development preview code may only be imported from src/preview or src/app/preview (docs/TECHNICAL_ARCHITECTURE.md §20).",
 };
 
+const privilegedImport = {
+  group: ["@/server/privileged", "@/server/privileged/*", "**/server/privileged/**"],
+  message:
+    "The service-role client may only be used by server actions and server pages (docs/TECHNICAL_ARCHITECTURE.md §7.3).",
+};
+
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -26,6 +32,21 @@ export default defineConfig([
     },
   },
   {
+    // UI components, the domain layer, shared helpers and the preview never
+    // touch the service-role client.
+    files: [
+      "src/components/**/*.{ts,tsx}",
+      "src/domain/**/*.{ts,tsx}",
+      "src/lib/**/*.{ts,tsx}",
+      "src/preview/**/*.{ts,tsx}",
+      "src/app/preview/**/*.{ts,tsx}",
+      "src/config/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [previewImport, privilegedImport] }],
+    },
+  },
+  {
     // Domain layer: pure TypeScript, no framework, UI or preview imports.
     files: ["src/domain/**/*.{ts,tsx}"],
     rules: {
@@ -34,6 +55,7 @@ export default defineConfig([
         {
           patterns: [
             previewImport,
+            privilegedImport,
             {
               group: ["react", "react-dom", "next", "next/*"],
               message: "The domain layer must not import frameworks.",
@@ -52,7 +74,8 @@ export default defineConfig([
     // anything or request business data over the network.
     files: ["src/preview/**/*.{ts,tsx}", "src/app/preview/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": "off",
+      // Preview code may import preview code, never the service-role client.
+      "no-restricted-imports": ["error", { patterns: [privilegedImport] }],
       "no-restricted-globals": [
         "error",
         { name: "localStorage", message: "The preview must not persist data." },
