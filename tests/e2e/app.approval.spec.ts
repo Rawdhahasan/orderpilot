@@ -1,8 +1,17 @@
+import { randomUUID } from "node:crypto";
+
 import { expect } from "@playwright/test";
 
 import { formAlert, localSql, signIn, submittedIntake, test, USERS } from "./app/support";
 
 const NS = "/o/northstar";
+const po = (name: string) => `${name}-${randomUUID().slice(0, 6)}`;
+// Unique per run, so repeated runs never collide on PO numbers.
+const NG_APR_1 = po("NG-APR-1");
+const NG_APR_2 = po("NG-APR-2");
+const NG_APR_3 = po("NG-APR-3");
+const NG_APR_4 = po("NG-APR-4");
+const NG_APR_5 = po("NG-APR-5");
 const reserved = (sku: string) =>
   localSql(
     `select reserved from public.inventory_balances b join public.products p on p.id = b.product_id where p.sku = '${sku}' and p.organization_id = '00000000-0000-4000-a000-000000000001'`,
@@ -14,14 +23,14 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
     open,
   }) => {
     const id = submittedIntake({
-      po: "NG-APR-1",
+      po: NG_APR_1,
       lines: [{ sku: "JAN-1001", qty: 12, price: 8.95 }],
     });
     const before = Number(reserved("JAN-1001"));
     await signIn(page, USERS.nsApprover);
     await page.goto(`${NS}/approvals`);
     await page
-      .getByRole("row", { name: /NG-APR-1/ })
+      .getByRole("row", { name: new RegExp(NG_APR_1) })
       .getByRole("link")
       .click();
     await expect(page).toHaveURL(`${NS}/approvals/${id}`);
@@ -51,7 +60,7 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
   }) => {
     localSql(`select 1`);
     const id = submittedIntake({
-      po: "NG-APR-2",
+      po: NG_APR_2,
       lines: [{ sku: "JAN-4402", qty: 60, price: 38.5 }],
     });
     await signIn(page, USERS.nsApprover);
@@ -94,11 +103,11 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
 
   test("request changes and reject need a reason", async ({ page }) => {
     const changes = submittedIntake({
-      po: "NG-APR-3",
+      po: NG_APR_3,
       lines: [{ sku: "JAN-1001", qty: 1, price: 8.95 }],
     });
     const reject = submittedIntake({
-      po: "NG-APR-4",
+      po: NG_APR_4,
       lines: [{ sku: "JAN-1001", qty: 1, price: 8.95 }],
     });
     await signIn(page, USERS.nsApprover);
@@ -110,6 +119,7 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
       .getByLabel("What should the reviewer change?")
       .fill("Check the quantity with the customer");
     await page.getByRole("button", { name: "Request changes" }).click();
+    await expect(page.getByText("This order is in review.")).toBeVisible();
     await page.goto(`${NS}/customer-pos/${changes}`);
     await expect(
       page.getByText(/Changes requested by Priya Raman: Check the quantity with the customer/),
@@ -119,13 +129,14 @@ test.describe("approval, sales orders, audit and dashboard (Phase 5)", () => {
     await page.getByRole("button", { name: "Reject" }).click();
     await page.getByLabel("Why is it rejected?").fill("Not our customer's order");
     await page.getByRole("button", { name: "Reject" }).click();
+    await expect(page.getByText("This order is rejected.")).toBeVisible();
     await page.goto(`${NS}/customer-pos/${reject}`);
     await expect(page.getByText(/Rejected by Priya Raman: Not our customer's order/)).toBeVisible();
   });
 
   test("the submitter cannot approve their own order (independent approval)", async ({ page }) => {
     const id = submittedIntake({
-      po: "NG-APR-5",
+      po: NG_APR_5,
       submittedBy: "00000000-0000-4000-a500-000000000003",
       lines: [{ sku: "JAN-1001", qty: 1, price: 8.95 }],
     });

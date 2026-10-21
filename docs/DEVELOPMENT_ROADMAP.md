@@ -193,6 +193,8 @@ flowchart LR
 
 **Exit criteria:** the MVP release checklist in [TESTING_STRATEGY.md §15](TESTING_STRATEGY.md) is complete except the items reserved for Phase 7.
 
+**Status:** built where it can be done locally. Performance check on a 50,000-order, 5,000-product reference dataset (`corepack pnpm perf:check`: list pages 8–14 ms, 200-line approval about 0.4 s at the database); automated WCAG 2.2 AA checks (axe-core) on every signed-in screen at 1440 and 390 px; internal security review ([SECURITY_REVIEW.md](SECURITY_REVIEW.md)); screenshot comparison for stable screens (Chromium); demo workspace banner, operator workspace creation and non-destructive demo reset. **Not done (need people):** manual VoiceOver and NVDA passes, usability sessions and the scripted demo rehearsal.
+
 ### Phase 7: Real AI evaluation and pilot readiness
 
 | Scope | Approval needed |

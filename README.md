@@ -3,25 +3,60 @@
 Customer PO intake, validation and approval for wholesalers and distributors.
 Every customer PO is checked and approved before it becomes an order.
 
-**Status: Phase 2B (database security and audit).** The database runs locally; there is no
-sign-in, no data access from the app and no real data yet. The planning documents are in [docs/](docs/).
+**Status: MVP built locally (Phases 1 to 6).** Upload a customer PO, review the extracted
+draft with provenance, resolve exceptions, approve into a sales order that reserves stock,
+fulfil or cancel it, and follow everything in the audit trail. Extraction is **simulated**
+(fictional fixture documents only); there is no deployment and no real AI provider yet
+(Phase 7). The planning documents are in [docs/](docs/).
 
-## Run it locally
+## Run the MVP locally
 
-Requirements: macOS, Linux or Windows with **Node.js 24** (`node --version`). No Docker
-and no accounts are needed for Phase 1.
+Requirements: **Node.js 24**, **Docker Desktop** running, and `docker` on your `PATH`
+(`~/.docker/bin`). Everything runs on your machine; no accounts or cloud services.
 
 ```sh
 cd ~/orderpilot
-corepack pnpm install        # first time only; answer "Y" if corepack asks to download pnpm
+corepack pnpm install                    # first time only
+corepack pnpm db:start                   # local Supabase: database, Auth, Storage, Mailpit
+corepack pnpm db:reset                   # fresh database with the fictional seed (local only)
+corepack pnpm db:env                     # writes the git-ignored .env.local
+ORDERPILOT_DEV_PASSWORD='choose-12-or-more' corepack pnpm db:provision
 corepack pnpm dev
 ```
 
-Open **http://localhost:3000/preview/dashboard**.
+Open **http://localhost:3000** and sign in, for example:
 
-`corepack pnpm` runs the exact pnpm version pinned in `package.json` without a global
-install. If you prefer a global `pnpm`, run `corepack enable pnpm` (may need `sudo`)
-and drop the `corepack` prefix.
+| Person (fictional) | Email                            | Role                                             |
+| ------------------ | -------------------------------- | ------------------------------------------------ |
+| Jordan Ellis       | `jordan.ellis@northstar.example` | Processor: upload and review                     |
+| Priya Raman        | `priya.raman@northstar.example`  | Approver: approve, override                      |
+| Marc Dubois        | `marc.dubois@northstar.example`  | Inventory Manager: stock, fulfilment             |
+| Sofia Brandt       | `sofia.brandt@northstar.example` | Owner: sets up an authenticator on first sign-in |
+
+**Try the core flow:** as Jordan, upload `tests/fixtures/documents/01-harbor-pine-clean.pdf`
+(Customer POs → Upload PO), confirm the values and submit. As Priya, open Approvals,
+approve, and open the new sales order. As Marc, mark it fulfilled. The other fixtures show
+a messy PO with exceptions (`02`), a two-page PO (`03`), a failed-then-recovered
+extraction (`04`), and an unknown document that opens in manual entry (`90`). Emails
+(invitations, password resets) appear in Mailpit at http://127.0.0.1:54324.
+
+**Reset the demo workspace** between demonstrations: `corepack pnpm ops:reset-demo northstar`
+(archives the current workspace and creates a fresh copy; nothing is deleted).
+
+## Test it
+
+```sh
+corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test   # static checks and unit tests
+corepack pnpm db:reset && corepack pnpm db:test                        # 687 database checks (pgTAP)
+corepack pnpm test:concurrency                                         # parallel approvals, stock, workers
+corepack pnpm test:e2e                                                 # preview and production builds
+corepack pnpm test:e2e:app                                             # signed-in journeys, Chromium
+PW_APP_BROWSER=webkit corepack pnpm test:e2e:app                       # the same in WebKit
+corepack pnpm perf:check                                               # reference dataset timings
+```
+
+`test:e2e:app` resets the **local** OrderPilot database first (the reset refuses any
+non-local target).
 
 ## The development preview
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { ChevronDown, LogOut, UserRound } from "lucide-react";
+import { ChevronDown, LogOut, Presentation, UserRound } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/app-shell/app-shell";
+import { Banner } from "@/components/feedback/banner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,7 +20,7 @@ import { navigationFor } from "@/domain/auth/navigation-access";
 import { ROLE_LABELS, type Role } from "@/domain/auth/roles";
 import { signOut } from "@/features/auth/actions";
 
-type WorkspaceLink = { slug: string; name: string; role: Role };
+type WorkspaceLink = { slug: string; name: string; role: Role; isDemo?: boolean };
 
 /** The signed-in app shell. Navigation follows the role read from the database. */
 export function WorkspaceShell({
@@ -47,6 +48,18 @@ export function WorkspaceShell({
       navigation={navigationFor(workspace.role, NAVIGATION)}
       user={{ name: user.name, detail: ROLE_LABELS[workspace.role], initials }}
       segmentLabels={{ members: "Members" }}
+      banner={
+        workspace.isDemo ? (
+          <Banner tone="info" icon={Presentation}>
+            <strong className="font-semibold" data-testid="demo-banner">
+              Demo data
+            </strong>
+            <span className="hidden sm:inline">
+              This workspace contains fictional companies and orders for demonstration.
+            </span>
+          </Banner>
+        ) : undefined
+      }
       sidebarFooter={
         <div className="mb-1 flex flex-col gap-0.5">
           <Link

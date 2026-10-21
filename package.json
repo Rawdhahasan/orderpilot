@@ -31,7 +31,9 @@
     "db:types": "SUPABASE_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1 supabase gen types typescript --local --schema public > src/server/db/database.types.ts && prettier --write src/server/db/database.types.ts",
     "db:env": "node scripts/dev/write-env.mjs",
     "db:provision": "node scripts/dev/provision-users.mjs",
-    "ops:reset-mfa": "node scripts/ops/reset-mfa.mjs"
+    "ops:reset-mfa": "node scripts/ops/reset-mfa.mjs",
+    "ops:reset-demo": "node scripts/ops/reset-demo.mjs",
+    "perf:check": "node scripts/dev/perf-check.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

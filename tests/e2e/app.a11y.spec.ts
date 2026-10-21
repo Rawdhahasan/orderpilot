@@ -1,0 +1,79 @@
+import AxeBuilder from "@axe-core/playwright";
+import { expect, type Page } from "@playwright/test";
+
+import { localSql, signIn, submittedIntake, test, USERS } from "./app/support";
+
+const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
+
+async function seriousViolations(page: Page) {
+  const results = await new AxeBuilder({ page }).withTags(TAGS).analyze();
+  return results.violations
+    .filter((v) => v.impact === "serious" || v.impact === "critical")
+    .map(
+      (v) =>
+        `${v.id} (${v.impact}): ${v.help} → ${v.nodes
+          .map((n) => n.target.join(" "))
+          .slice(0, 3)
+          .join(", ")}`,
+    );
+}
+
+async function check(page: Page, path: string) {
+  await page.goto(path);
+  await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+  expect(await seriousViolations(page), path).toEqual([]);
+}
+
+test.describe("accessibility of the signed-in product (WCAG 2.2 AA, axe-core)", () => {
+  test("public pages", async ({ page }) => {
+    for (const path of ["/sign-in", "/forgot-password", "/invite/not-a-token"])
+      await check(page, path);
+  });
+
+  test("every main screen as an Owner, at desktop and phone widths", async ({ open }) => {
+    const intake = submittedIntake({
+      po: "A11Y-1",
+      lines: [{ sku: "JAN-1001", qty: 2, price: 8.95 }],
+    });
+    const customer = "00000000-0000-4000-a200-000000000001";
+    const product = "00000000-0000-4000-a400-000000000001";
+    const page = await open({ as: "nsOwner" });
+    const paths = [
+      "/o/northstar/dashboard",
+      "/o/northstar/customer-pos",
+      "/o/northstar/customer-pos/upload",
+      `/o/northstar/customer-pos/${intake}`,
+      "/o/northstar/approvals",
+      `/o/northstar/approvals/${intake}`,
+      "/o/northstar/sales-orders",
+      "/o/northstar/customers",
+      `/o/northstar/customers/${customer}`,
+      `/o/northstar/customers/${customer}?tab=addresses`,
+      "/o/northstar/products",
+      `/o/northstar/products/${product}`,
+      "/o/northstar/inventory",
+      `/o/northstar/inventory/${product}`,
+      "/o/northstar/audit",
+      "/o/northstar/settings",
+      "/o/northstar/settings/members",
+      "/account",
+      "/account/security",
+    ];
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const path of paths) await check(page, path);
+    }
+  });
+
+  test("the review screen in edit mode", async ({ page }) => {
+    const id = submittedIntake({ po: "A11Y-2", lines: [{ sku: "JAN-2207", qty: 3, price: 39 }] });
+    // Back to review, as if changes were requested (fixture only).
+    localSql(
+      `set orderpilot.transition = 'on'; update public.inbound_orders set status = 'in_review', validated_version = null where id = '${id}'`,
+    );
+    await signIn(page, USERS.nsProcessor);
+    await check(page, `/o/northstar/customer-pos/${id}`);
+    await expect(page.getByTestId("review-workspace")).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+  });
+});

@@ -944,7 +944,7 @@ Lists use keyset (cursor) pagination. Dashboard counts come from aggregate SQL f
 
 ## 19. Implementation status
 
-Phases 2A to 2D are built. Migrations: `supabase/migrations/20261020130000` to `20261023100200` (15).
+Phases 2A to 6 are built. Migrations: `supabase/migrations/20261020130000` to `20261028100000` (20): 2A–2D foundation, security, transactions and queue; 3 stock functions and the stock view; 4A documents and extraction drafts; 4B review drafts, validation results and matching; 5 backorders handled externally, timelines and dashboard figures; 6 workspace creation and demo reset.
 
 | Area | Built | Notes |
 |---|---|---|
@@ -956,5 +956,5 @@ Phases 2A to 2D are built. Migrations: `supabase/migrations/20261020130000` to `
 | Extraction queue (2D) | `start_extraction`, `claim_extraction_job` (`skip locked`, leases, claim tokens), `extend_extraction_lease`, `complete_extraction`, `fail_extraction` (backoff 30 s doubling to 15 min, retry limit), `recover_stale_extractions` (`pg_cron` every minute), `retry_extraction`, `switch_to_manual_entry` | Applying extracted values (4A) |
 | Audit (2B, 2D) | Row triggers on every business table, plus domain events: `inbound_order.submitted/withdrawn/changes_requested/rejected/cancelled/approved`, `sales_order.confirmed/fulfilled/cancelled`, `exception.overridden/reopened`, `extraction.retried/retry_scheduled/failed`, `inventory.integrity_violation`, `mfa.factor_removed` | |
 | Seed | Two fictional workspaces, master data, stock, one user per role in each (no passwords; `db:provision` sets local ones) | |
-| Tests | pgTAP `001`–`011`: **604 checks**; concurrency suite `tests/concurrency` (real parallel transactions, 8 tests including a negative control) | |
+| Tests | pgTAP `001`–`015`: **687 checks**; concurrency suite `tests/concurrency` (real parallel transactions, 8 tests including a negative control) | |
 | Generated types | `src/server/db/database.types.ts` (`corepack pnpm db:types`) | |

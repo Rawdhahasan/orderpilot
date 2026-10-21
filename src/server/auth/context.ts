@@ -11,6 +11,8 @@ export type Workspace = {
   name: string;
   slug: string;
   role: Role;
+  /** FR-ORG-06: demo workspaces show a persistent "Demo data" banner. */
+  isDemo: boolean;
   /** Formatting context (DESIGN_SYSTEM.md §10). */
   locale: string;
   currency: string;
@@ -44,7 +46,7 @@ export const getWorkspaces = cache(async (): Promise<Workspace[]> => {
   const { data, error } = await supabase
     .from("organization_members")
     .select(
-      "role, status, organizations!inner(id, name, slug, status, locale, base_currency, timezone)",
+      "role, status, organizations!inner(id, name, slug, status, locale, base_currency, timezone, is_demo)",
     )
     .eq("user_id", user.id)
     .eq("status", "active")
@@ -59,12 +61,14 @@ export const getWorkspaces = cache(async (): Promise<Workspace[]> => {
         locale: string;
         base_currency: string;
         timezone: string;
+        is_demo: boolean;
       };
       return {
         id: org.id,
         name: org.name,
         slug: org.slug,
         role: row.role as Role,
+        isDemo: org.is_demo,
         locale: org.locale,
         currency: org.base_currency,
         timeZone: org.timezone,

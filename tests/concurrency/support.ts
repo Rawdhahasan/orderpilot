@@ -100,8 +100,9 @@ export function stockedProduct(onHand: number): string {
   sql(`
     insert into public.products (id, organization_id, sku, name, selling_uom, list_price)
     values ('${id}', '${ORG}', '${sku}', 'Concurrency test item ${sku}', 'EA', 1);
-    insert into public.inventory_balances (organization_id, product_id, location_id, on_hand)
-    values ('${ORG}', '${id}', '00000000-0000-4000-a100-000000000001', ${onHand});
+    -- The balance row is created with the product (Phase 3); set its stock.
+    update public.inventory_balances set on_hand = ${onHand}
+     where organization_id = '${ORG}' and product_id = '${id}' and location_id = '00000000-0000-4000-a100-000000000001';
     insert into public.inventory_movements (organization_id, product_id, location_id, movement_type, adjustment_reason,
       on_hand_delta, reserved_delta, on_hand_after, reserved_after)
     values ('${ORG}', '${id}', '00000000-0000-4000-a100-000000000001', 'adjustment', 'opening_balance', ${onHand}, 0, ${onHand}, 0);`);
