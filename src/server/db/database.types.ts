@@ -241,6 +241,13 @@ export type Database = {
             referencedColumns: ["organization_id", "id"];
           },
           {
+            foreignKeyName: "customer_item_aliases_organization_id_product_id_fkey";
+            columns: ["organization_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_levels";
+            referencedColumns: ["organization_id", "product_id"];
+          },
+          {
             foreignKeyName: "customer_item_aliases_organization_id_source_inbound_order_fkey";
             columns: ["organization_id", "source_inbound_order_id"];
             isOneToOne: false;
@@ -318,6 +325,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "products";
             referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "customer_prices_organization_id_product_id_fkey";
+            columns: ["organization_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_levels";
+            referencedColumns: ["organization_id", "product_id"];
           },
           {
             foreignKeyName: "customer_prices_updated_by_fkey";
@@ -664,6 +678,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "products";
             referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "inbound_order_lines_organization_id_product_id_fkey";
+            columns: ["organization_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_levels";
+            referencedColumns: ["organization_id", "product_id"];
           },
           {
             foreignKeyName: "inbound_order_lines_removed_by_fkey";
@@ -1020,6 +1041,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "products";
             referencedColumns: ["organization_id", "id"];
+          },
+          {
+            foreignKeyName: "inventory_balances_organization_id_product_id_fkey";
+            columns: ["organization_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_levels";
+            referencedColumns: ["organization_id", "product_id"];
           },
         ];
       };
@@ -1726,6 +1754,13 @@ export type Database = {
             referencedColumns: ["organization_id", "id"];
           },
           {
+            foreignKeyName: "sales_order_lines_organization_id_product_id_fkey";
+            columns: ["organization_id", "product_id"];
+            isOneToOne: false;
+            referencedRelation: "stock_levels";
+            referencedColumns: ["organization_id", "product_id"];
+          },
+          {
             foreignKeyName: "sales_order_lines_organization_id_sales_order_id_fkey";
             columns: ["organization_id", "sales_order_id"];
             isOneToOne: false;
@@ -2003,10 +2038,53 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      stock_levels: {
+        Row: {
+          available: number | null;
+          location_id: string | null;
+          name: string | null;
+          on_hand: number | null;
+          organization_id: string | null;
+          product_id: string | null;
+          product_status: Database["public"]["Enums"]["product_status"] | null;
+          quantity_decimals: number | null;
+          reorder_point: number | null;
+          reserved: number | null;
+          selling_uom: string | null;
+          sku: string | null;
+          stock_status: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "products_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "products_selling_uom_fkey";
+            columns: ["selling_uom"];
+            isOneToOne: false;
+            referencedRelation: "uom_codes";
+            referencedColumns: ["code"];
+          },
+        ];
+      };
     };
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string };
+      adjust_stock: {
+        Args: {
+          p_mode: string;
+          p_note?: string;
+          p_product_id: string;
+          p_quantity: number;
+          p_reason: Database["public"]["Enums"]["adjustment_reason"];
+        };
+        Returns: Json;
+      };
       approve_inbound_order: {
         Args: {
           p_expected_version: number;
@@ -2100,6 +2178,15 @@ export type Database = {
         };
         Returns: string;
       };
+      find_similar_customers: {
+        Args: { p_name: string; p_organization_id: string };
+        Returns: {
+          id: string;
+          name: string;
+          similarity: number;
+          status: Database["public"]["Enums"]["customer_status"];
+        }[];
+      };
       fulfill_sales_order: {
         Args: { p_expected_version: number; p_sales_order_id: string };
         Returns: Json;
@@ -2114,6 +2201,10 @@ export type Database = {
       };
       issue_invitation_token: { Args: { p_invitation_id: string }; Returns: string };
       override_exception: { Args: { p_exception_id: string; p_reason: string }; Returns: Json };
+      receive_stock: {
+        Args: { p_note?: string; p_product_id: string; p_quantity: number; p_reference?: string };
+        Returns: Json;
+      };
       record_mfa_reset: { Args: { p_reason: string; p_user_id: string }; Returns: number };
       recover_stale_extractions: { Args: Record<PropertyKey, never>; Returns: number };
       reject_inbound_order: {

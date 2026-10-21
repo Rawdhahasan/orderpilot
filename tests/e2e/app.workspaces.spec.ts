@@ -68,9 +68,9 @@ test.describe("workspaces", () => {
     ]) {
       await page.goto(`/o/northstar/${segment}`);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-      await expect(page.locator("[data-phase-notice]").first()).toBeVisible();
       await expect(page.getByTestId("preview-banner")).toHaveCount(0);
       await expect(page.getByText(/Fictional Data/i)).toHaveCount(0);
+      await expect(page.getByText("Development Preview")).toHaveCount(0);
     }
   });
 

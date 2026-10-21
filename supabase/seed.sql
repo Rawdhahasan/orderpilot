@@ -65,7 +65,9 @@ insert into public.inventory_balances (organization_id, product_id, location_id,
   ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-a400-000000000004', '00000000-0000-4000-a100-000000000001', 142.5, 0),
   ('00000000-0000-4000-a000-000000000001', '00000000-0000-4000-a400-000000000006', '00000000-0000-4000-a100-000000000001', 12, 0),
   ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-b400-000000000001', '00000000-0000-4000-b100-000000000001', 300, 0),
-  ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-b400-000000000002', '00000000-0000-4000-b100-000000000001', 25, 0);
+  ('00000000-0000-4000-b000-000000000001', '00000000-0000-4000-b400-000000000002', '00000000-0000-4000-b100-000000000001', 25, 0)
+-- Tracked products already have an empty balance (created with the product).
+on conflict (organization_id, product_id, location_id) do update set on_hand = excluded.on_hand;
 
 -- Every balance is explained by the ledger (invariant I-2): opening balances.
 insert into public.inventory_movements
@@ -73,7 +75,8 @@ insert into public.inventory_movements
    on_hand_delta, reserved_delta, on_hand_after, reserved_after, reference)
 select organization_id, product_id, location_id, 'adjustment'::public.movement_type, 'opening_balance'::public.adjustment_reason,
        on_hand, 0, on_hand, 0, 'Opening balance (fictional seed)'
-from public.inventory_balances;
+from public.inventory_balances
+where on_hand <> 0;
 
 -- Customer part numbers and prices -------------------------------------------
 insert into public.customer_item_aliases

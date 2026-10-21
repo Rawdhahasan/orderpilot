@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-import { Field, FormMessage, SubmitButton } from "@/components/forms/form-parts";
+import { ActionForm, Field, FormMessage, SubmitButton } from "@/components/forms/form-parts";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { INITIAL_FORM_STATE } from "@/features/form-state";
@@ -26,7 +26,7 @@ export function SettingsForm({ values, isOwner }: { values: SettingsValues; isOw
   // Turning independent approval off is Owner-only (D-05); the database enforces it too.
   const lockApproval = !isOwner && values.require_independent_approval;
   return (
-    <form action={action} className="space-y-5" noValidate>
+    <ActionForm action={action} className="space-y-5" noValidate>
       <input type="hidden" name="organizationId" value={values.id} />
       <input type="hidden" name="slug" value={values.slug} />
       <FormMessage ok={state.ok} message={state.message} />
@@ -107,6 +107,6 @@ export function SettingsForm({ values, isOwner }: { values: SettingsValues; isOw
         </div>
       </div>
       <SubmitButton>Save settings</SubmitButton>
-    </form>
+    </ActionForm>
   );
 }

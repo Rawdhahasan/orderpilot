@@ -4,7 +4,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(127);
+select plan(132);
 
 -- Fixtures set statuses directly, as the workflow functions do (Phase 2D guard).
 select set_config('orderpilot.transition', 'on', true);
@@ -147,7 +147,7 @@ insert into tenant_tables values
   ('inbound_order_lines', 'organization_id', true), ('extraction_runs', 'organization_id', true),
   ('order_exceptions', 'organization_id', true), ('sales_orders', 'organization_id', true),
   ('sales_order_lines', 'organization_id', true), ('integration_outbox', 'organization_id', false),
-  ('audit_events', 'organization_id', true);
+  ('audit_events', 'organization_id', true), ('stock_levels', 'organization_id', true);
 
 -- The fixture really covers every tenant table (otherwise isolation is not proven).
 select is(

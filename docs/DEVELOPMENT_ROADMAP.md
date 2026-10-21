@@ -124,6 +124,8 @@ flowchart LR
 
 **Exit criteria:** E2E journeys for master data pass; role-based UI matches the permission map; inventory invariants hold.
 
+**Status:** built. Customers (list, search, create with possible-duplicate warning, edit, hold/release, deactivate/reactivate, addresses with defaults, part-number mappings, order history), products (list with search across SKU, name, GTIN and part numbers; create; edit; discontinue; audited list price changes; tracking rules; customer prices), inventory (stock list with statuses, receive, adjust by quantity or count, movement history). Migration `20261024100000`; pgTAP `012`; E2E `app.master-data.spec.ts`. CSV import (Should, FR-CUST-09, FR-PROD-06, FR-INV-08) is not built.
+
 ### Phase 4A: Intake and extraction
 
 | Scope | Requirements |

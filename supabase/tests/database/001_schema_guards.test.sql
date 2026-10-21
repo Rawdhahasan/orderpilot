@@ -100,10 +100,10 @@ select is(
   (select coalesce(array_agg(p.proname::text order by p.proname), '{}')
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'public' and p.prosecdef),
-  array['accept_invitation', 'approve_inbound_order', 'cancel_inbound_order', 'cancel_sales_order',
+  array['accept_invitation', 'adjust_stock', 'approve_inbound_order', 'cancel_inbound_order', 'cancel_sales_order',
         'change_member_role', 'claim_extraction_job', 'complete_extraction', 'describe_invitation',
         'extend_extraction_lease', 'fail_extraction', 'fulfill_sales_order', 'invite_member',
-        'issue_invitation_token', 'override_exception', 'record_mfa_reset', 'recover_stale_extractions',
+        'issue_invitation_token', 'override_exception', 'receive_stock', 'record_mfa_reset', 'recover_stale_extractions',
         'reject_inbound_order', 'remove_member', 'request_changes', 'retry_extraction', 'revoke_invitation',
         'set_base_currency', 'set_customer_status', 'set_member_status', 'set_product_price',
         'set_product_tracking', 'start_extraction', 'submit_inbound_order', 'switch_to_manual_entry',
@@ -169,7 +169,7 @@ select is(
     'inventory_movements:SELECT', 'locations:SELECT', 'order_exceptions:SELECT',
     'organization_members:SELECT', 'organizations:SELECT',
     'products:SELECT', 'profiles:SELECT', 'sales_order_lines:SELECT', 'sales_orders:SELECT',
-    'source_documents:SELECT', 'uom_codes:SELECT'
+    'source_documents:SELECT', 'stock_levels:SELECT', 'uom_codes:SELECT'
   ],
   'signed-in users have table-level SELECT only (plus DELETE on customer prices; invitations are column-level); writes are column grants'
 );

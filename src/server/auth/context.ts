@@ -6,7 +6,16 @@ import { cache } from "react";
 import type { Role } from "@/domain/auth/roles";
 import { createClient } from "@/server/supabase/server";
 
-export type Workspace = { id: string; name: string; slug: string; role: Role };
+export type Workspace = {
+  id: string;
+  name: string;
+  slug: string;
+  role: Role;
+  /** Formatting context (DESIGN_SYSTEM.md §10). */
+  locale: string;
+  currency: string;
+  timeZone: string;
+};
 
 /** The signed-in user, verified with the Auth server (never trusts the cookie alone). */
 export const getAuth = cache(async () => {
@@ -34,15 +43,32 @@ export const getWorkspaces = cache(async (): Promise<Workspace[]> => {
   if (!user) return [];
   const { data, error } = await supabase
     .from("organization_members")
-    .select("role, status, organizations!inner(id, name, slug, status)")
+    .select(
+      "role, status, organizations!inner(id, name, slug, status, locale, base_currency, timezone)",
+    )
     .eq("user_id", user.id)
     .eq("status", "active")
     .eq("organizations.status", "active");
   if (error || !data) return [];
   return data
     .map((row) => {
-      const org = row.organizations as unknown as { id: string; name: string; slug: string };
-      return { id: org.id, name: org.name, slug: org.slug, role: row.role as Role };
+      const org = row.organizations as unknown as {
+        id: string;
+        name: string;
+        slug: string;
+        locale: string;
+        base_currency: string;
+        timezone: string;
+      };
+      return {
+        id: org.id,
+        name: org.name,
+        slug: org.slug,
+        role: row.role as Role,
+        locale: org.locale,
+        currency: org.base_currency,
+        timeZone: org.timezone,
+      };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 });

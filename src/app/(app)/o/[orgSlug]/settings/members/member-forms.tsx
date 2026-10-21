@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 
-import { Field, FormMessage, SubmitButton } from "@/components/forms/form-parts";
+import { ActionForm, Field, FormMessage, SubmitButton } from "@/components/forms/form-parts";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -73,7 +73,7 @@ export function InviteForm({
 }) {
   const [state, action] = useActionState(inviteMember, INITIAL_FORM_STATE);
   return (
-    <form action={action} className="space-y-4" noValidate>
+    <ActionForm action={action} className="space-y-4" noValidate>
       <input type="hidden" name="organizationId" value={organizationId} />
       <input type="hidden" name="slug" value={slug} />
       <FormMessage ok={state.ok} message={state.message} />
@@ -104,7 +104,7 @@ export function InviteForm({
         </div>
         <SubmitButton variant="primary">Send invitation</SubmitButton>
       </div>
-    </form>
+    </ActionForm>
   );
 }
 
@@ -145,7 +145,7 @@ export function MemberActions({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <form action={roleAction} className="flex items-center gap-2">
+        <ActionForm action={roleAction} className="flex items-center gap-2">
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="memberId" value={member.id} />
           <RoleSelect
@@ -156,8 +156,8 @@ export function MemberActions({
             label={`Role for ${member.name}`}
           />
           <SubmitButton size="sm">Change role</SubmitButton>
-        </form>
-        <form action={statusAction}>
+        </ActionForm>
+        <ActionForm action={statusAction}>
           <input type="hidden" name="slug" value={slug} />
           <input type="hidden" name="memberId" value={member.id} />
           <input
@@ -168,7 +168,7 @@ export function MemberActions({
           <SubmitButton size="sm">
             {member.status === "active" ? "Suspend" : "Reactivate"}
           </SubmitButton>
-        </form>
+        </ActionForm>
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="ghost">
@@ -217,13 +217,13 @@ export function RevokeInvitation({
 }) {
   const [state, action] = useActionState(revokeInvitation, INITIAL_FORM_STATE);
   return (
-    <form action={action} className="flex flex-col items-end gap-2">
+    <ActionForm action={action} className="flex flex-col items-end gap-2">
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="invitationId" value={invitationId} />
       <SubmitButton size="sm" variant="ghost" aria-label={`Withdraw invitation for ${email}`}>
         Withdraw
       </SubmitButton>
       {state.message && !state.ok ? <FormMessage ok={false} message={state.message} /> : null}
-    </form>
+    </ActionForm>
   );
 }

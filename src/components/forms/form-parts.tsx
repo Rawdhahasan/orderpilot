@@ -1,7 +1,14 @@
 "use client";
 
 import { CheckCircle2, OctagonAlert } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useTransition,
+  type ComponentProps,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
@@ -70,9 +77,38 @@ export function FormMessage({ ok, message }: { ok: boolean; message?: string }) 
   );
 }
 
+const ActionPendingContext = createContext(false);
+
+/**
+ * A form that runs its action in a transition without React's automatic form
+ * reset, so what the person typed stays in place when the server returns a
+ * validation message or a warning to confirm.
+ */
+export function ActionForm({
+  action,
+  children,
+  ...props
+}: { action: (form: FormData) => void } & Omit<ComponentProps<"form">, "action" | "onSubmit">) {
+  const [pending, startTransition] = useTransition();
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    startTransition(() => action(form));
+  };
+  return (
+    <ActionPendingContext value={pending}>
+      <form {...props} onSubmit={onSubmit} aria-busy={pending || undefined}>
+        {children}
+      </form>
+    </ActionPendingContext>
+  );
+}
+
 /** Submit button that shows a spinner and stays disabled while the action runs. */
 export function SubmitButton({ children, ...props }: ComponentProps<typeof Button>) {
-  const { pending } = useFormStatus();
+  const status = useFormStatus();
+  const actionPending = useContext(ActionPendingContext);
+  const pending = status.pending || actionPending;
   return (
     <Button type="submit" pending={pending} {...props}>
       {children}

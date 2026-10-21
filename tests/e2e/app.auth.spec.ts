@@ -82,12 +82,12 @@ test.describe("authentication", () => {
     await expect(page.getByRole("status")).toHaveText(message);
 
     await page.goto("/forgot-password");
-    await page.getByLabel("Email").fill(USERS.nsInventory);
+    await page.getByLabel("Email").fill(USERS.bvProcessor);
     await page.getByRole("button", { name: /send|reset/i }).click();
     await expect(page.getByRole("status")).toHaveText(message);
 
     const link = await linkFromMail(
-      USERS.nsInventory,
+      USERS.bvProcessor,
       /https?:\/\/[^"'\s]+\/auth\/v1\/verify\?[^"'\s]+/,
     );
     await page.goto(link);
@@ -98,11 +98,11 @@ test.describe("authentication", () => {
     await page.getByRole("button", { name: /password/i }).click();
     await expect(page).toHaveURL("/sign-in?reset=1");
 
-    await page.getByLabel("Email").fill(USERS.nsInventory);
+    await page.getByLabel("Email").fill(USERS.bvProcessor);
     await page.getByLabel("Password").fill(password());
     await page.getByRole("button", { name: "Sign in" }).click();
     await expect(formAlert(page)).toHaveText("Email or password is incorrect.");
-    await signIn(page, USERS.nsInventory, { password: newPassword });
-    await expect(page).toHaveURL("/o/northstar/dashboard");
+    await signIn(page, USERS.bvProcessor, { password: newPassword });
+    await expect(page).toHaveURL("/o/bayview/dashboard");
   });
 });
