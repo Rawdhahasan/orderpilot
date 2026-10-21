@@ -47,7 +47,7 @@ extraction (`04`), and an unknown document that opens in manual entry (`90`). Em
 
 ```sh
 corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test   # static checks and unit tests
-corepack pnpm db:reset && corepack pnpm db:test                        # 687 database checks (pgTAP)
+corepack pnpm db:reset && corepack pnpm db:test                        # 705 database checks (pgTAP)
 corepack pnpm test:concurrency                                         # parallel approvals, stock, workers
 corepack pnpm test:e2e                                                 # preview and production builds
 corepack pnpm test:e2e:app                                             # signed-in journeys, Chromium

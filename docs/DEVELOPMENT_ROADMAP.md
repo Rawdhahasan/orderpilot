@@ -124,7 +124,7 @@ flowchart LR
 
 **Exit criteria:** E2E journeys for master data pass; role-based UI matches the permission map; inventory invariants hold.
 
-**Status:** built. Customers (list, search, create with possible-duplicate warning, edit, hold/release, deactivate/reactivate, addresses with defaults, part-number mappings, order history), products (list with search across SKU, name, GTIN and part numbers; create; edit; discontinue; audited list price changes; tracking rules; customer prices), inventory (stock list with statuses, receive, adjust by quantity or count, movement history). Migration `20261024100000`; pgTAP `012`; E2E `app.master-data.spec.ts`. CSV import (Should, FR-CUST-09, FR-PROD-06, FR-INV-08) is not built.
+**Status:** built. Customers (list, search, create with possible-duplicate warning, edit, hold/release, deactivate/reactivate, addresses with defaults, part-number mappings, order history), products (list with search across SKU, name, GTIN and part numbers; create; edit; discontinue; audited list price changes; tracking rules; customer prices), inventory (stock list with statuses, receive, adjust by quantity or count, movement history). Migration `20261024100000`; pgTAP `012`; E2E `app.master-data.spec.ts`. CSV imports for customers (with addresses), products and opening stock: validation preview, all-or-nothing writes, templates (Settings → Import from CSV).
 
 ### Phase 4A: Intake and extraction
 
@@ -178,7 +178,7 @@ flowchart LR
 
 **Exit criteria:** the full core workflow passes end to end; parallel approvals produce one sales order; invariants hold after every E2E run; dashboard shows "not enough data" on an empty workspace.
 
-**Status:** built. Approval queue (oldest first, customer and submitter filters, Override required badge) and approval summary (customer, ship-to, totals, lines with availability, exceptions with overrides, changes from AI suggestions, reviewer note, history); approve with the stock decision step, request changes and reject with reasons, independent approval; sales order list (search, status and date filters) and detail (reserved and backordered quantities, price sources, approval and fulfilment details, history), mark fulfilled, cancel, mark backorder handled externally (FR-SO-08, inventory unchanged), CSV export; integration outbox events; entity timelines for every member and the workspace audit log with filters and CSV export (Owner, Admin); role-aware dashboard from real data with "Not enough data yet" below five approvals. Not built: document download audit events (FR-AUD-07, Should).
+**Status:** built. Approval queue (oldest first, customer and submitter filters, Override required badge) and approval summary (customer, ship-to, totals, lines with availability, exceptions with overrides, changes from AI suggestions, reviewer note, history); approve with the stock decision step, request changes and reject with reasons, independent approval; sales order list (search, status and date filters) and detail (reserved and backordered quantities, price sources, approval and fulfilment details, history), mark fulfilled, cancel, mark backorder handled externally (FR-SO-08, inventory unchanged), CSV export; integration outbox events; entity timelines for every member and the workspace audit log with filters and CSV export (Owner, Admin); role-aware dashboard from real data with "Not enough data yet" below five approvals. Document downloads are recorded in the audit trail (FR-AUD-07).
 
 ### Phase 6: Hardening, accessibility, refinement and demo
 

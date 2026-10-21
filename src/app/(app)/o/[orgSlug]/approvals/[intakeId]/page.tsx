@@ -121,7 +121,7 @@ export default async function ApprovalPage({
       />
 
       <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <Card>
             <CardHeader>
               <CardTitle>Order</CardTitle>
@@ -282,7 +282,7 @@ export default async function ApprovalPage({
           </section>
         </div>
 
-        <div className="space-y-5 lg:sticky lg:top-4 lg:self-start">
+        <div className="min-w-0 space-y-5 lg:sticky lg:top-4 lg:self-start">
           <Card>
             <CardHeader>
               <CardTitle>Decision</CardTitle>

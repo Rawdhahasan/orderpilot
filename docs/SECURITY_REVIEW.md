@@ -89,7 +89,7 @@ known limitation), **Open** (not yet addressed; owner phase noted).
 | Control | Status | Evidence |
 |---|---|---|
 | Immutable audit trail with actor, workspace, record, time, reason | Met | `audit_events` append-only for all roles; pgTAP `008`, `010` |
-| Document download events | Open | FR-AUD-07 (Should) |
+| Document download events | Met | `record_document_download`; E2E clean-fixture journey |
 | Error monitoring and alerting | Open | Phase 7 (D-30) |
 
 ## Findings to carry into Phase 7

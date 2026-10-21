@@ -134,7 +134,7 @@ export default async function SalesOrderPage({
       </p>
 
       <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
-        <div className="space-y-5">
+        <div className="min-w-0 space-y-5">
           <Card>
             <CardHeader>
               <CardTitle>Lines</CardTitle>
@@ -266,16 +266,16 @@ export default async function SalesOrderPage({
                 {fmt.date(order.requested_delivery_date)}
               </p>
               {intake ? (
-                <p className="flex flex-col gap-1">
+                <p className="flex flex-col gap-2">
                   <Link
                     href={`/o/${orgSlug}/customer-pos/${order.inbound_order_id}`}
-                    className="font-medium text-primary hover:underline"
+                    className="inline-flex min-h-6 items-center font-medium text-primary hover:underline"
                   >
                     Customer PO {intake.reference}
                   </Link>
                   <a
                     href={`/api/documents/${intake.source_document_id}`}
-                    className="font-medium text-primary hover:underline"
+                    className="inline-flex min-h-6 items-center font-medium text-primary hover:underline"
                     target="_blank"
                     rel="noreferrer"
                   >

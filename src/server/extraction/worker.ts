@@ -9,8 +9,17 @@ import { normalizeResult, overallConfidence } from "./normalize";
 import { ProviderError, type ExtractionProvider } from "./provider";
 import { simulatedProvider } from "./simulated";
 
+/**
+ * The configured provider. Only the simulated provider exists in the MVP
+ * (D-07); a real provider is added behind the same interface after the
+ * evaluation in Phase 7 (docs/PRODUCTION_READINESS.md §4).
+ */
 export function activeProvider(): ExtractionProvider {
-  return simulatedProvider; // EXTRACTION_PROVIDER=simulated is the only provider in the MVP (D-07).
+  const name = serverEnv().EXTRACTION_PROVIDER;
+  switch (name) {
+    case "simulated":
+      return simulatedProvider;
+  }
 }
 
 /**

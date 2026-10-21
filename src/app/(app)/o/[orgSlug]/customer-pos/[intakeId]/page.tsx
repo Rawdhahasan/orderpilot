@@ -21,6 +21,7 @@ import {
   FailedActions,
   SubmitPanel,
 } from "./intake-controls";
+import { SplitView } from "./split-view";
 import { ReviewWorkspace, type ReviewLine, type ReviewProduct } from "./review-workspace";
 
 export const metadata: Metadata = { title: "Customer PO" };
@@ -216,122 +217,125 @@ export default async function IntakePage({
         </p>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <Card className="xl:sticky xl:top-4 xl:self-start">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="truncate">{doc?.original_filename ?? "Document"}</CardTitle>
-            {doc ? (
-              <a
-                href={`/api/documents/${doc.id}?download=1`}
-                className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
-              >
-                <Download aria-hidden className="size-4" />
-                Download
-              </a>
-            ) : null}
-          </CardHeader>
-          <CardContent>
-            {doc?.mime_type === "application/pdf" ? (
-              <iframe
-                src={`/api/documents/${doc.id}`}
-                title={`Original document ${doc.original_filename}`}
-                className="h-[70vh] w-full rounded-md border border-border bg-neutral-50"
+      <SplitView
+        document={
+          <Card className="xl:sticky xl:top-4 xl:self-start">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="truncate">{doc?.original_filename ?? "Document"}</CardTitle>
+              {doc ? (
+                <a
+                  href={`/api/documents/${doc.id}?download=1`}
+                  className="inline-flex items-center gap-1 text-small font-medium text-primary hover:underline"
+                >
+                  <Download aria-hidden className="size-4" />
+                  Download
+                </a>
+              ) : null}
+            </CardHeader>
+            <CardContent>
+              {doc?.mime_type === "application/pdf" ? (
+                <iframe
+                  src={`/api/documents/${doc.id}`}
+                  title={`Original document ${doc.original_filename}`}
+                  className="h-[70vh] w-full rounded-md border border-border bg-neutral-50"
+                />
+              ) : doc ? (
+                // eslint-disable-next-line @next/next/no-img-element -- streamed original, not optimisable
+                <img
+                  src={`/api/documents/${doc.id}`}
+                  alt={`Original document ${doc.original_filename}`}
+                  className="w-full rounded-md border border-border"
+                />
+              ) : null}
+            </CardContent>
+          </Card>
+        }
+        order={
+          <div className="space-y-5">
+            {["in_review", "pending_approval", "approved", "rejected", "cancelled"].includes(
+              intake.status,
+            ) ? (
+              <ReviewWorkspace
+                slug={orgSlug}
+                organizationId={workspace.id}
+                intakeId={intakeId}
+                version={intake.version}
+                canEdit={editable}
+                confidenceThreshold={Number(snapshot.org.confidence_threshold)}
+                currentUser={profile?.full_name ?? ""}
+                money={{ locale: workspace.locale, currency: workspace.currency }}
+                customers={customers ?? []}
+                addresses={snapshot.addresses.filter((a) => a.type === "shipping")}
+                header={{
+                  customer_id: intake.customer_id,
+                  customer_po_number: intake.customer_po_number,
+                  po_date: intake.po_date,
+                  requested_delivery_date: intake.requested_delivery_date,
+                  currency: intake.currency,
+                  payment_terms: intake.payment_terms,
+                  document_total:
+                    intake.document_total === null ? null : String(intake.document_total),
+                  notes: intake.notes,
+                  ship_to: intake.ship_to as Record<string, string> | null,
+                  ship_to_address_id: intake.ship_to_address_id,
+                  field_meta: (intake.field_meta ?? {}) as Record<string, Record<string, unknown>>,
+                }}
+                lines={lines}
               />
-            ) : doc ? (
-              // eslint-disable-next-line @next/next/no-img-element -- streamed original, not optimisable
-              <img
-                src={`/api/documents/${doc.id}`}
-                alt={`Original document ${doc.original_filename}`}
-                className="w-full rounded-md border border-border"
-              />
             ) : null}
-          </CardContent>
-        </Card>
 
-        <div className="space-y-5">
-          {["in_review", "pending_approval", "approved", "rejected", "cancelled"].includes(
-            intake.status,
-          ) ? (
-            <ReviewWorkspace
-              slug={orgSlug}
-              organizationId={workspace.id}
-              intakeId={intakeId}
-              version={intake.version}
-              canEdit={editable}
-              confidenceThreshold={Number(snapshot.org.confidence_threshold)}
-              currentUser={profile?.full_name ?? ""}
-              money={{ locale: workspace.locale, currency: workspace.currency }}
-              customers={customers ?? []}
-              addresses={snapshot.addresses.filter((a) => a.type === "shipping")}
-              header={{
-                customer_id: intake.customer_id,
-                customer_po_number: intake.customer_po_number,
-                po_date: intake.po_date,
-                requested_delivery_date: intake.requested_delivery_date,
-                currency: intake.currency,
-                payment_terms: intake.payment_terms,
-                document_total:
-                  intake.document_total === null ? null : String(intake.document_total),
-                notes: intake.notes,
-                ship_to: intake.ship_to as Record<string, string> | null,
-                ship_to_address_id: intake.ship_to_address_id,
-                field_meta: (intake.field_meta ?? {}) as Record<string, Record<string, unknown>>,
-              }}
-              lines={lines}
-            />
-          ) : null}
+            {["in_review", "pending_approval"].includes(intake.status) ? (
+              <Card>
+                <CardContent className="pt-5">
+                  <ExceptionsPanel
+                    exceptions={exceptions}
+                    slug={orgSlug}
+                    intakeId={intakeId}
+                    canOverride={can(workspace.role, "exception.override")}
+                    canAcknowledge={editable}
+                  />
+                </CardContent>
+              </Card>
+            ) : null}
 
-          {["in_review", "pending_approval"].includes(intake.status) ? (
-            <Card>
-              <CardContent className="pt-5">
-                <ExceptionsPanel
-                  exceptions={exceptions}
-                  slug={orgSlug}
-                  intakeId={intakeId}
-                  canOverride={can(workspace.role, "exception.override")}
-                  canAcknowledge={editable}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {editable ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Finish</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <SubmitPanel
-                  scope={scope}
-                  blocking={openBlocking.filter((e) => !e.overridable).length}
-                  overrideRequired={openBlocking.filter((e) => e.overridable).length}
-                />
-                <CancelPanel scope={scope} />
-              </CardContent>
-            </Card>
-          ) : null}
-          <section aria-labelledby="intake-history">
-            <SectionHeading id="intake-history">History</SectionHeading>
-            <Card>
-              <CardContent className="pt-4">
-                <EntityTimeline
-                  supabase={supabase}
-                  entityType="inbound_order"
-                  entityId={intakeId}
-                  format={fmt.dateTime}
-                />
-              </CardContent>
-            </Card>
-          </section>
-          {canReview && intake.status === "extraction_failed" ? (
-            <Card>
-              <CardContent className="pt-5">
-                <CancelPanel scope={scope} />
-              </CardContent>
-            </Card>
-          ) : null}
-        </div>
-      </div>
+            {editable ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Finish</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <SubmitPanel
+                    scope={scope}
+                    blocking={openBlocking.filter((e) => !e.overridable).length}
+                    overrideRequired={openBlocking.filter((e) => e.overridable).length}
+                  />
+                  <CancelPanel scope={scope} />
+                </CardContent>
+              </Card>
+            ) : null}
+            <section aria-labelledby="intake-history">
+              <SectionHeading id="intake-history">History</SectionHeading>
+              <Card>
+                <CardContent className="pt-4">
+                  <EntityTimeline
+                    supabase={supabase}
+                    entityType="inbound_order"
+                    entityId={intakeId}
+                    format={fmt.dateTime}
+                  />
+                </CardContent>
+              </Card>
+            </section>
+            {canReview && intake.status === "extraction_failed" ? (
+              <Card>
+                <CardContent className="pt-5">
+                  <CancelPanel scope={scope} />
+                </CardContent>
+              </Card>
+            ) : null}
+          </div>
+        }
+      />
     </div>
   );
 }

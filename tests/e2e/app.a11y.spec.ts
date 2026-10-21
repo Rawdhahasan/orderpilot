@@ -47,6 +47,11 @@ async function check(page: Page, path: string) {
   await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
   expect(await seriousViolations(page), path).toEqual([]);
   expect(consoleErrors.get(page), path).toEqual([]);
+  // Phone widths: the page itself never scrolls sideways (tables scroll in their own container).
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow, `${path} scrolls sideways by ${overflow}px`).toBeLessThanOrEqual(1);
 }
 
 test.describe("accessibility of the signed-in product (WCAG 2.2 AA, axe-core)", () => {
@@ -60,6 +65,17 @@ test.describe("accessibility of the signed-in product (WCAG 2.2 AA, axe-core)", 
       po: "A11Y-1",
       lines: [{ sku: "JAN-1001", qty: 2, price: 8.95 }],
     });
+    // An approved order for the sales order detail page (approved as the seed Approver).
+    const approved = submittedIntake({
+      po: "A11Y-SO",
+      lines: [{ sku: "JAN-1001", qty: 1, price: 8.95 }],
+    });
+    const salesOrder = localSql(
+      `select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-a500-000000000003", "role": "authenticated"}', false);
+       select public.approve_inbound_order('${approved}', 1) ->> 'sales_order_id';`,
+    )
+      .split("\n")
+      .pop()!;
     const customer = "00000000-0000-4000-a200-000000000001";
     const product = "00000000-0000-4000-a400-000000000001";
     const page = await open({ as: "nsOwner" });
@@ -71,6 +87,8 @@ test.describe("accessibility of the signed-in product (WCAG 2.2 AA, axe-core)", 
       "/o/northstar/approvals",
       `/o/northstar/approvals/${intake}`,
       "/o/northstar/sales-orders",
+      `/o/northstar/sales-orders/${salesOrder}`,
+      "/o/northstar/settings/import",
       "/o/northstar/customers",
       `/o/northstar/customers/${customer}`,
       `/o/northstar/customers/${customer}?tab=addresses`,
@@ -99,6 +117,15 @@ test.describe("accessibility of the signed-in product (WCAG 2.2 AA, axe-core)", 
     await signIn(page, USERS.nsProcessor);
     await check(page, `/o/northstar/customer-pos/${id}`);
     await expect(page.getByTestId("review-workspace")).toBeVisible();
+    expect(await seriousViolations(page)).toEqual([]);
+    // Phone width: the document and the order are tabs (FR-REV-01).
+    await page.setViewportSize({ width: 390, height: 900 });
+    await check(page, `/o/northstar/customer-pos/${id}`);
+    await page.getByRole("tab", { name: "Original document" }).click();
+    await expect(page.getByRole("tab", { name: "Original document" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(await seriousViolations(page)).toEqual([]);
   });
 });
